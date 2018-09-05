@@ -1,9 +1,105 @@
 <!DOCTYPE html>
 <html>
 <head>
+	<meta charset="utf-8">
 	<title>planet-x:offline</title>
+	<style type="text/css">
+		#container{width:500px; height:500px; margin:0 auto;}
+		#messages{width:500px; height:100px; overflow:hidden;}
+		#actions{width:500px; height:150px;}
+		#explorer{width:500px; height:150px;}
+		#planet-x{width:500px; height:300px;border:1px solid black;}
+		.btn{width:150px; height:25px; border:1px solid black; cursor:pointer; 
+			text-align: center;padding: 3px; margin:2px;}
+		#control{float:left;}
+		#work{float:left;}
+		#droids{float:left;}
+	</style>
 </head>
 <body>
+<div id="container">
+	<div id="messages"></div>
+	<div id="actions">
+		<div id="control">
+			<div class="headline">Control Room</div>
+			<div id="restartReactor" class="btn">restart reactor</div>
+			<div id="restartExtractor" class="btn">restart extractor</div>
+			<div id="droidFactory" class="btn">droid factory</div>
+		</div>
+		<div id="work">
+			<div class="headline">Work</div>
+			<div id="work-reactor" class="btn">reactor</div>
+			<div id="work-extractor" class="btn">extractor</div>
+			<div id="work-droid" class="btn">factory</div>			
+		</div>
+		<div id="droids">
+			<div class="headline">Droids</div>
+			<div id="droid-reactor" class="btn">+</div>
+			<div id="droid-extractor" class="btn">+</div>	
+		</div>		
+	</div>
+	<div id="explorer">
+		<div id="upgrades">
+			<div class="headline">Upgrade</div>
+			<div id="upg-battery" class="btn">battery</div>
+			<div id="upg-shield" class="btn">shield</div>	
+			<div id="upg-weapon" class="btn">weapon</div>	
+		</div>
+	</div>
+	<div id="planet-x">
+		
+	</div>
+</div>
 
+<script type="text/javascript">
+	const messages = {intro:"starship has crashed", intro2:"on a strange planet", 
+		intro3:"all systems are offline", resources:"not enough resources"}
+	function getById(Element){
+		return document.getElementById(Element)
+	}
+	function rmBtn(btn){
+		btn.parentNode.removeChild(btn)
+	}
+	{
+	function typeWritter(txt, i=0){
+		if ( i<txt.length ){
+			document.getElementById("messages").innerHTML += txt.charAt(i)
+			i++
+			setTimeout(typeWritter, 50, txt, i)
+		}
+		else{document.getElementById("messages").innerHTML += "<br>"}
+	}}
+	function cooldown(time, button, btnText, callback){
+		const fullTime = time;
+		(function recursive(time, fullTime, button, btnText, callback){
+			if (time<=0){
+				button.textContent = btnText
+				let percentage = 0
+				let linearGradient = "linear-gradient(to right, gray, gray "+ percentage+
+				"%, transparent "+ percentage+"%)"
+				button.style.backgroundImage = linearGradient
+				button.style.opacity = "1"
+				callback[0](...callback.slice(1))
+				return time
+			}
+			let percentage = (time/fullTime)*100
+			let linearGradient = "linear-gradient(to right, rgba(0, 0, 0, 0.35) "+ percentage+
+				"%, rgba(0, 0, 0, 0) "+ percentage+"%)";
+			button.style.backgroundImage = linearGradient
+			button.style.opacity = "0.5"
+			setTimeout(function() {
+				return recursive(time-10, fullTime, button, btnText, callback);
+			}, 10);			
+		}(time, fullTime, button, btnText, callback))
+	}
+	const container = getById("container")
+	const restartReactor = getById("restartReactor")
+	typeWritter(messages.intro)
+	setTimeout(typeWritter, 1500, messages.intro2)
+	setTimeout(typeWritter, 3000, messages.intro3)
+	setTimeout(()=>{restartReactor.style.visibility = "visible"}, 5000)
+
+</script>
 </body>
 </html>
+
