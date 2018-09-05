@@ -8,12 +8,15 @@
 		#messages{width:500px; height:100px; overflow:hidden;}
 		#actions{width:500px; height:150px;}
 		#explorer{width:500px; height:150px;}
-		#planet-x{width:500px; height:300px;border:1px solid black;}
+		#planet-x{width:750px; height:350px;border:1px solid black;}
+		#planet-x p {font-family: "courier new";font-size: 10px;margin:0px;
+		border-width: 0px;padding: 0px;line-height: 5px;}
 		.btn{width:150px; height:25px; border:1px solid black; cursor:pointer; 
 			text-align: center;padding: 3px; margin:2px;}
 		#control{float:left;}
 		#work{float:left;}
 		#droids{float:left;}
+
 	</style>
 </head>
 <body>
@@ -50,10 +53,11 @@
 		
 	</div>
 </div>
-
+<script src="map.js"></script>
 <script type="text/javascript">
 	const messages = {intro:"starship has crashed", intro2:"on a strange planet", 
 		intro3:"all systems are offline", resources:"not enough resources"}
+	let explorer = {pos:{x:65, y:25}, symbol:"@"}
 	function getById(Element){
 		return document.getElementById(Element)
 	}
@@ -98,7 +102,25 @@
 	setTimeout(typeWritter, 1500, messages.intro2)
 	setTimeout(typeWritter, 3000, messages.intro3)
 	setTimeout(()=>{restartReactor.style.visibility = "visible"}, 5000)
+	/*world map*/
+	const planet = getById("planet-x")
+	for ( let i=0; i<planetRLE.length; i++ ){
+		console.log(planetRLE[i])
+		let row = document.createElement("p");
+		row.setAttribute("id", i);
+		row.setAttribute("class", "latitude")
+		flag = false
+		index = 0
+		for ( let j=0; j<planetRLE[i][planetRLE[i].length-1]; j++){
+			if ( planetRLE[i][index] === j ){
+				flag = !flag
+				index++
+			}
+			row.innerHTML += (flag)? '*':'\u00A0'
 
+		}
+		planet.appendChild(row);
+	}
 </script>
 </body>
 </html>
