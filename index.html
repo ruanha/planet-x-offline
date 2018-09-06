@@ -4,67 +4,177 @@
 	<meta charset="utf-8">
 	<title>planet-x:offline</title>
 	<style type="text/css">
+		h1{font-size:14px; margin:0; margin-bottom:5px; padding:0px; text-align: center; text-decoration: underline;}
 		#container{width:500px; height:500px; margin:0 auto;}
 		#messages{width:500px; height:100px; overflow:hidden;}
 		#actions{width:500px; height:150px;}
 		#explorer{width:500px; height:150px;}
-		#planet-x{width:500px; height:350px;border:1px solid black; padding-top:20px;}
-		#planet-x p {font-family: "courier new";font-size: 10px;margin:0px;margin-left:55px;
-		border-width: 0px;padding: 0px;line-height: 5px;}
-		.btn{width:150px; height:25px; border:1px solid black; cursor:pointer; 
+
+		#planet-x{width:500px; height:450px; /*border:1px solid black;border-radius:500px;*/overflow: hidden;margin-left:45px;}
+		
+		#planet-x p {font-family: "courier new";font-size: 11px;margin:0px;margin-left:0px;
+		border-width: 0px;padding: 0px;line-height: 5px;
+		position: relative;top: 5%;}
+		
+		.btn{width:150px; height:20px; border:1px solid black; cursor:pointer; 
 			text-align: center;padding: 3px; margin:2px;}
 		#control{float:left;}
 		#work{float:left;}
 		#droids{float:left;}
-
+		#upgrades{float:left;}
+		#build{float:left;}
 	</style>
 </head>
 <body>
 <div id="container">
 	<div id="messages"></div>
 	<div id="actions">
+		<h1>Control Room</h1>
 		<div id="control">
-			<div class="headline">Control Room</div>
-			<div id="restartReactor" class="btn">restart reactor</div>
-			<div id="restartExtractor" class="btn">restart extractor</div>
-			<div id="droidFactory" class="btn">droid factory</div>
+			<div class="headline">Systems</div>
+			<div id="restart-reactor" class="btn active">restart reactor</div>
+			<div id="restart-extractor" class="btn active">restart extractor</div>
+			<div id="droid-factory" class="btn active">droid factory</div>
 		</div>
 		<div id="work">
 			<div class="headline">Work</div>
-			<div id="work-reactor" class="btn">reactor</div>
-			<div id="work-extractor" class="btn">extractor</div>
-			<div id="work-droid" class="btn">factory</div>			
+			<div id="work-reactor" class="btn active">make enegy</div>
+			<div id="work-extractor" class="btn active">extract metals</div>
+			<div id="work-droid" class="btn active">build droid</div>			
 		</div>
 		<div id="droids">
 			<div class="headline">Droids</div>
-			<div id="droid-reactor" class="btn">+</div>
-			<div id="droid-extractor" class="btn">+</div>	
+			<div id="droid-reactor" class="btn active">droid (reactor)</div>
+			<div id="droid-extractor" class="btn active">droid (extractor)</div>	
 		</div>		
 	</div>
 	<div id="explorer">
+		<h1>Explorer</h1>
 		<div id="upgrades">
 			<div class="headline">Upgrade</div>
-			<div id="upg-battery" class="btn">battery</div>
-			<div id="upg-shield" class="btn">shield</div>	
-			<div id="upg-weapon" class="btn">weapon</div>	
+			<div id="upg-battery" class="btn active">battery</div>
+			<div id="upg-shield" class="btn active">shield</div>	
+			<div id="upg-weapon" class="btn active">weapon</div>	
 		</div>
+		<div id="build">
+			<div class="headline">Build</div>
+			<div id="build-explorer" class="btn active">build</div>
+			<div id="deploy" class="btn active">deploy</div>
+		</div>		
 	</div>
+	<h1>Planet-x</h1>
 	<div id="planet-x">
 		
 	</div>
 </div>
 <script src="map.js"></script>
 <script type="text/javascript">
-	const messages = {intro:"starship has crashed", intro2:"on a strange planet", 
-		intro3:"all systems are offline", resources:"not enough resources"}
-	let explorer = {pos:{x:65, y:25}, symbol:"@"}
+	const messages = {intro:"starship has crashed on a strange planet", 
+		intro2:"all systems are offline", resources:"not enough resources"}
+	const resources = {energy:0, metals:0, rare:0}
+	const droids = {idle:0, reactor:0, extractor:0}
 	function getById(Element){
 		return document.getElementById(Element)
 	}
-	function rmBtn(btn){
-		btn.parentNode.removeChild(btn)
+	function showBtn(btnId){
+		document.getElementById(btnId).style.visibility = "visible"
 	}
-	{
+	function restartReactor(){
+		if ( rrBtn.className === 'btn active' ){
+			rrBtn.className = "btn"
+			cooldown(5000, rrBtn, "reactor online", [showBtn, "work-reactor"] )
+		}
+	}
+	function restartExtractor(){
+		if ( reBtn.className === 'btn active' ){
+			reBtn.className = "btn"
+			cooldown(10000, reBtn, "extractor online", [showBtn, "work-extractor"] )
+		}		
+	}
+	function restartFactory(){
+		if ( dfBtn.className === 'btn active' ){
+			dfBtn.className = "btn"
+			cooldown(20000, dfBtn, "factory online", [showBtn, "work-droid"] )
+		}		
+	}
+	function reactivate(btn){
+		btn.className = "btn active"
+	}
+	function workReactor(){
+		if ( wrBtn.className === 'btn active' ){
+			wrBtn.className = "btn"
+			cooldown(5000, wrBtn, "make energy", [reactivate, wrBtn] )
+			setTimeout(function(){
+				resources.energy+=1
+			}, 5000)
+		}
+	}
+	function workExtractor(){
+		if ( weBtn.className === 'btn active' ){
+			weBtn.className = "btn"
+			cooldown(10000, weBtn, "extract metals", [reactivate, weBtn] )
+			setTimeout(function(){
+				resources.metals+=1
+			}, 10000)
+		}
+	}
+	function buildDroid(){
+		if ( bdBtn.className === 'btn active' ){
+			bdBtn.className = "btn"
+			cooldown(20000, bdBtn, "build droid", [reactivate, bdBtn] )
+			setTimeout(function(){
+				droids.idle+=1
+			}, 20000)
+		}
+	}
+	function droidReactor(){
+		if ( droids.idle > 0 ){
+			drBtn.className = "btn"
+			droids.reactor = 1
+			droids.idle-=1			
+		}
+		else {
+			typeWritter(messages.resources)
+		}
+	}
+	function droidExtractor(){
+		if ( droids.idle > 0 ){
+			deBtn.className = "btn"
+			droids.extractor = 1
+			droids.idle-=1			
+		}
+		else {
+			typeWritter(messages.resources)
+		}
+	}
+	function buildExplorer(){
+		deployBtn.style.visibility = "visible"
+	}
+	function deploy(){
+		deployBtn.style.visibility = "visible"
+	}
+	/* ALL BUTTONS ARE DECLARED HERE */
+	rrBtn = getById("restart-reactor")
+	rrBtn.addEventListener('click', restartReactor)
+	reBtn = getById("restart-extractor")
+	reBtn.addEventListener('click', restartExtractor)
+	dfBtn = getById("droid-factory")
+	dfBtn.addEventListener('click', restartFactory)
+	wrBtn = getById("work-reactor")
+	wrBtn.addEventListener('click', workReactor)
+	weBtn = getById("work-extractor")
+	weBtn.addEventListener('click', workExtractor)
+	bdBtn = getById("work-droid")
+	bdBtn.addEventListener('click', buildDroid)
+	drBtn = getById("droid-reactor")
+	drBtn.addEventListener('click', droidReactor)
+	deBtn = getById("droid-extractor")
+	deBtn.addEventListener('click', droidExtractor)
+	beBtn = getById("build-explorer")
+	beBtn.addEventListener('click', buildExplorer)
+	deployBtn = getById("deploy")
+	deployBtn.addEventListener('click', deploy)
+
 	function typeWritter(txt, i=0){
 		if ( i<txt.length ){
 			document.getElementById("messages").innerHTML += txt.charAt(i)
@@ -72,7 +182,7 @@
 			setTimeout(typeWritter, 50, txt, i)
 		}
 		else{document.getElementById("messages").innerHTML += "<br>"}
-	}}
+	}
 	function cooldown(time, button, btnText, callback){
 		const fullTime = time;
 		(function recursive(time, fullTime, button, btnText, callback){
@@ -96,16 +206,7 @@
 			}, 10);			
 		}(time, fullTime, button, btnText, callback))
 	}
-	function display(){
-		for ( let lat=0; lat<listOfLatitudes.length; lat++){
-			let row = document.createElement("p");
-			row.setAttribute("class", "latitude")
-			row.setAttribute("id", lat);
-			row.innerHTML = listOfLatitudes[lat].toString().replace(/,/g, "", )
-			planet.appendChild(row);
-		}
-	}
-	function display2(){
+	function drawMap(){
 		for ( let lat=0; lat<map.length; lat++){
 			let row = document.createElement("p");
 			row.setAttribute("class", "latitude")
@@ -116,21 +217,35 @@
 			planet.appendChild(row);
 		}
 	}
-	function display3(dx=0){
-		center={x:35, y:35}
-		radius=37
+	function validY(y){
+		return ( y >= map.length || y < 0 )? false:y
+	}
+	function validX(x){
+		if (  x >= map[0].length ){
+			return x-map[0].length;
+		}
+		else if ( x < 0){
+			return x+map[0].length-1;
+		}
+		else{
+			return x;
+		}
+	}
+	function display(dx=0){
+		center={x:33, y:33}
+		radius=33 //37
 		let lats = planet.getElementsByTagName("p");
 		for ( let i=0; i<map.length; i++ ){
 			let rowHTML = "";
 			for ( let j=0; j<map.length; j++ ){
 				if ( (i-center.x)**2 + (j-center.y)**2 <= radius**2 ){
-					let x = explorer.pos.x+dx-this.center.x+j;
+					let x = explorer.x+dx-center.x+j;
 					let y = i;
-					//x = map.validX(x);
-					//y = map.validY(y);
-					//let symbol = ( map.isVisible(x,y) )?  map[y][x].symbol:String.fromCharCode(178);
+					x = validX(x);
+					y = validY(y);
+					//let symbol = ( map[y][x].visible )?  map[y][x].symbol:String.fromCharCode(178);
 					let symbol = ( true )?  map[y][x].symbol:String.fromCharCode(178);
-					//symbol = ( map.isExplorer(x,y) )?  explorer.symbol:symbol;
+					symbol = ( map[y][x].exp )?  explorer.symbol:symbol;
 					rowHTML += symbol;
 				}
 				else {
@@ -141,11 +256,8 @@
 		}
 	}
 	const container = getById("container")
-	const restartReactor = getById("restartReactor")
 	typeWritter(messages.intro)
-	setTimeout(typeWritter, 1500, messages.intro2)
-	setTimeout(typeWritter, 3000, messages.intro3)
-	setTimeout(()=>{restartReactor.style.visibility = "visible"}, 5000)
+	setTimeout(typeWritter, 3000, messages.intro2)
 	/*world map*/
 	const planet = getById("planet-x")
 	const map =[]
@@ -161,12 +273,45 @@
 				index++
 			}
 			map[i].push( (flag)? {symbol:'\u00A0'}:{symbol:'*'} )
-			//listOfLatitudes[i].push( (flag)? '*':'\u00A0' )
 		}
-		console.log(map[i])
 	}
-	display2()
-	display3()
+	drawMap()
+	base={y:25,x:50,symbol:"B"}
+	explorer={y:33,x:40,symbol:"@"}
+	
+	display()
+	document.onkeypress = (e)=>{
+		map[explorer.y][explorer.x].exp = false
+		let dx = 0
+		switch (e.keyCode){
+			case 38:
+			explorer.y = validY(explorer.y-1) || explorer.y
+			break
+			case 40:
+			explorer.y = validY(explorer.y+1) || explorer.y
+			break
+			case 37:
+			explorer.x = validX(explorer.x-1)
+			dx-=1
+			break
+			case 39:
+			explorer.x = validX(explorer.x+1)
+			dx+=1
+			break
+		}
+		console.log(explorer.y, explorer.x)
+		map[explorer.y][explorer.x].exp = true
+		display(dx)
+	}
+
+	/* GAME LOOPS */
+	let resourceLoop = setInterval(function(){
+		console.log(resources)
+	}, 10000)
+	let quickLoop = setInterval(function(){
+		if ( droids.reactor ){wrBtn.click()}
+		if ( droids.extractor ){weBtn.click()}
+	}, 10)
 </script>
 </body>
 </html>
