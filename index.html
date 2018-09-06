@@ -8,8 +8,8 @@
 		#messages{width:500px; height:100px; overflow:hidden;}
 		#actions{width:500px; height:150px;}
 		#explorer{width:500px; height:150px;}
-		#planet-x{width:750px; height:350px;border:1px solid black;}
-		#planet-x p {font-family: "courier new";font-size: 10px;margin:0px;
+		#planet-x{width:500px; height:350px;border:1px solid black; padding-top:20px;}
+		#planet-x p {font-family: "courier new";font-size: 10px;margin:0px;margin-left:55px;
 		border-width: 0px;padding: 0px;line-height: 5px;}
 		.btn{width:150px; height:25px; border:1px solid black; cursor:pointer; 
 			text-align: center;padding: 3px; margin:2px;}
@@ -96,6 +96,50 @@
 			}, 10);			
 		}(time, fullTime, button, btnText, callback))
 	}
+	function display(){
+		for ( let lat=0; lat<listOfLatitudes.length; lat++){
+			let row = document.createElement("p");
+			row.setAttribute("class", "latitude")
+			row.setAttribute("id", lat);
+			row.innerHTML = listOfLatitudes[lat].toString().replace(/,/g, "", )
+			planet.appendChild(row);
+		}
+	}
+	function display2(){
+		for ( let lat=0; lat<map.length; lat++){
+			let row = document.createElement("p");
+			row.setAttribute("class", "latitude")
+			row.setAttribute("id", lat);
+			for ( let lon=0; lon<map[0].length; lon++){
+				row.innerHTML += map[lat][lon].symbol
+			}
+			planet.appendChild(row);
+		}
+	}
+	function display3(dx=0){
+		center={x:35, y:35}
+		radius=37
+		let lats = planet.getElementsByTagName("p");
+		for ( let i=0; i<map.length; i++ ){
+			let rowHTML = "";
+			for ( let j=0; j<map.length; j++ ){
+				if ( (i-center.x)**2 + (j-center.y)**2 <= radius**2 ){
+					let x = explorer.pos.x+dx-this.center.x+j;
+					let y = i;
+					//x = map.validX(x);
+					//y = map.validY(y);
+					//let symbol = ( map.isVisible(x,y) )?  map[y][x].symbol:String.fromCharCode(178);
+					let symbol = ( true )?  map[y][x].symbol:String.fromCharCode(178);
+					//symbol = ( map.isExplorer(x,y) )?  explorer.symbol:symbol;
+					rowHTML += symbol;
+				}
+				else {
+					rowHTML += "\u00A0";
+				}
+			}
+			lats[i].innerHTML = rowHTML+"</span>";
+		}
+	}
 	const container = getById("container")
 	const restartReactor = getById("restartReactor")
 	typeWritter(messages.intro)
@@ -104,23 +148,25 @@
 	setTimeout(()=>{restartReactor.style.visibility = "visible"}, 5000)
 	/*world map*/
 	const planet = getById("planet-x")
+	const map =[]
 	for ( let i=0; i<planetRLE.length; i++ ){
-		console.log(planetRLE[i])
-		let row = document.createElement("p");
-		row.setAttribute("id", i);
-		row.setAttribute("class", "latitude")
+		map.push([])
 		flag = false
 		index = 0
+		planetRLE[i].unshift(0)
+		planetRLE[i].push(135)
 		for ( let j=0; j<planetRLE[i][planetRLE[i].length-1]; j++){
 			if ( planetRLE[i][index] === j ){
 				flag = !flag
 				index++
 			}
-			row.innerHTML += (flag)? '*':'\u00A0'
-
+			map[i].push( (flag)? {symbol:'\u00A0'}:{symbol:'*'} )
+			//listOfLatitudes[i].push( (flag)? '*':'\u00A0' )
 		}
-		planet.appendChild(row);
+		console.log(map[i])
 	}
+	display2()
+	display3()
 </script>
 </body>
 </html>
