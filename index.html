@@ -142,6 +142,8 @@ const markers = {
     [18, 75], [42, 107], [55, 120], [53, 70], [51, 74], [44, 78], [39, 64],
     [36, 57], [32, 58], [31, 26], [35, 29], [39, 33], [39, 41], [54, 43], [30, 21],
     [27, 17], [47, 34], [56, 35], [58, 40]],
+  E: [[19, 49]],
+  R: [[27, 47]],
 }
 
 function typeWritter(txt, t = 0) {
@@ -198,6 +200,8 @@ for (let i = 0; i < planetRLE.length; i += 1) {
       index += 1
     }
     map[i].push((flag) ? { symbol: '\u00A0' } : { symbol: '*' })
+    map[i][j].y = i
+    map[i][j].x = j
   }
 }
 function insertMarkers() {
@@ -284,10 +288,79 @@ function deadByEnergy() {
   typeWritter(messages.dead)
   initExplorer()
 }
+const network = { [`${base.y} ${base.x}`]: base }
+console.log('init network: ', network)
+
+function addToNetwork(tile) {
+  network[`${tile.y} ${tile.x}`] = tile
+}
+function getNearestHub(tile) {
+  let smallestDist
+  let nearest = ''
+  const keys = Object.keys(network)
+  console.log(keys)
+  keys.forEach((key) => {
+    if (network.hasOwnProperty(key)) {
+      console.log(key)
+      const dist = Math.sqrt(((network[key].x - tile.x) ** 2) + ((network[key].y - tile.y) ** 2))
+      if (!smallestDist) {
+        smallestDist = dist
+        nearest = key
+      } else {
+        if (dist < smallestDist) {
+          smallestDist = dist
+          nearest = key
+        }
+      }
+    }
+  })
+  // console.log(smallestDist, network[nearest])
+  return nearest
+}
+function connectToBase(tile, hub) {
+  if ((tile.y === hub.y && tile.x === hub.x) || tile.symbol === '-'
+    || tile.symbol === '|') {
+    return true
+  }
+  if (tile.y < hub.y) {
+    tile.symbol = (tile.symbol === '*' || tile.symbol === '\u00A0') ? '|' : tile.symbol
+    return connectToBase(map[tile.y + 1][tile.x], hub)
+  }
+  if (tile.y > hub.y) {
+    tile.symbol = (tile.symbol === '*' || tile.symbol === '\u00A0') ? '|' : tile.symbol
+    return connectToBase(map[tile.y - 1][tile.x], hub)
+  }
+  if (tile.x < hub.x) {
+    tile.symbol = (tile.symbol === '*' || tile.symbol === '\u00A0') ? '-' : tile.symbol
+    return connectToBase(map[tile.y][tile.x + 1], hub)
+  }
+  if (tile.x > hub.x) {
+    tile.symbol = (tile.symbol === '*' || tile.symbol === '\u00A0') ? '-' : tile.symbol
+    return connectToBase(map[tile.y][tile.x - 1], hub)
+  }
+}
+function hiveDefated(tile) {
+  // tile is a reference to the active map-tile at map[y][x]
+  const hub = network[getNearestHub(tile)]
+  tile.symbol = 'X'
+  connectToBase(tile, hub)
+  addToNetwork(tile)
+}
+function energyMineEstablished(tile) {
+  const hub = network[getNearestHub(tile)]
+  connectToBase(tile, hub)
+  addToNetwork(tile)
+}
+function rareMineEstablished(tile) {
+  const hub = network[getNearestHub(tile)]
+  connectToBase(tile, hub)
+  addToNetwork(tile)
+}
 
 function tileAction(tile) {
   if (canMove()) {
-    //explorer.energy -= 1  //this must be changed bakck!!!
+    console.log(tile.y, tile.x)
+    //explorer.energy -= 1
     explorerUpdate()
     switch (tile.symbol) {
       case 'B':
@@ -295,6 +368,21 @@ function tileAction(tile) {
         map[base.y][base.x].symbol = base.symbol
         map[explorer.y][explorer.x].exp = false
         explorer.health = explorer.healthMax
+        break
+      case 'H':
+        hiveDefated(tile)
+        break
+      case 'E':
+        energyMineEstablished(tile)
+        break
+      case 'R':
+        rareMineEstablished(tile)
+        break
+      case '-':
+        explorer.energy += 1
+        break
+      case '|':
+        explorer.energy += 1
         break
       default:
         break
@@ -305,7 +393,7 @@ function tileAction(tile) {
 }
 
 document.onkeypress = (e) => {
-  if (explorer.active) {
+  if (true  /*explorer.active*/) {
     map[explorer.y][explorer.x].exp = false
     let dx = 0
     switch (e.keyCode) {
@@ -326,7 +414,7 @@ document.onkeypress = (e) => {
       default:
         break
     }
-    console.log(explorer.y, explorer.x)
+    //console.log(explorer.y, explorer.x)
     map[explorer.y][explorer.x].exp = true
     tileAction(map[explorer.y][explorer.x])
     display(dx)
@@ -387,11 +475,11 @@ function reactivate(btn) {
 function workReactor() {
   if (wrBtn.className === 'btn active') {
     wrBtn.classList.remove('active')
-    cooldown(5000, wrBtn, 'extract energy', [reactivate, wrBtn])
+    cooldown(100, wrBtn, 'extract energy', [reactivate, wrBtn])
     setTimeout(() => {
       base.energy += 1
       getById('resource-energy').innerHTML = `energy: ${base.energy}`
-    }, 5000)
+    }, 100)
   }
 }
 function workExtractor() {
