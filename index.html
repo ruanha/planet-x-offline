@@ -12,12 +12,12 @@
 		#actions{width:500px; height:150px;}
 		#explorer{width:500px; height:150px;}
 
-		#planet-x{width:500px; height:450px; /*border:1px solid black;border-radius:500px;*/overflow: hidden;margin-left:45px;
+		#planet-x{width:700px; height:500px; /*border:1px solid black;border-radius:500px;*/overflow: hidden;margin-left:0px;
       opacity: 1; transition:opacity 1s;}
     #planet-x.fade{opacity:0;}
 		
-		#planet-x p {font-family: 'courier new';font-size: 11px;margin:0px;margin-left:0px;
-		border-width: 0px;padding: 0px;line-height: 5px;
+		#planet-x p {font-family: 'courier new';font-size: 14px;margin:0px;margin-left:0px;
+		border-width: 0px;padding: 0px;line-height: 7px;
 		position: relative;top: 5%;}
 		
 		.btn{width:150px; height:20px; border:1px solid black; cursor:pointer; 
@@ -30,6 +30,10 @@
 		#build{float:left;}
 		#load{float:left;}
 		#explorer-resources{margin-top:50px;}
+    #event{padding:10px;background-color: white;border:2px solid black;position: absolute;left:800px;top:500px;width:350px;z-index:20;visibility:"hidden";}
+    #event-top-panel{overflow:auto;}
+    div#event:before{position:absolute;background:white;content:attr(data-legend);
+      left:8px;top:-13px;}
 	</style>
 </head>
 <body>
@@ -99,6 +103,7 @@
 
 </div>
 	
+<script src='event.js'></script>
 <script src='map.js'></script>
 <script type='text/javascript'>
 const messages = {
@@ -108,10 +113,19 @@ const messages = {
   dead: 'explorer is lost, it\'s a harsh new world',
 }
 
+const enemyLvl1 = {
+  health: 5,
+  damage: 1,
+  delay: 1500,
+  weaponIcon: '-',
+  icon: '@enemy',
+  loot: { rare: 2, energy: 5 },
+}
+
 const base = {
-  y: 21,
-  x: 46,
-  symbol: 'B',
+  y: 21, // 21
+  x: 46, // 46
+  symbol: 'S',
   energy: 0,
   metals: 0,
   rare: 0,
@@ -134,7 +148,7 @@ const explorer = {
   healthMax: 10,
 }
 const markers = {
-  B: [[base.y, base.x]],
+  S: [[base.y, base.x]],
   H: [[32, 33], [27, 34], [25, 36], [20, 62], [22, 64], [26, 61], [21, 68],
     [16, 70], [26, 69], [26, 76], [29, 76], [22, 78], [28, 81], [26, 85],
     [33, 88], [36, 90], [39, 92], [37, 94], [38, 100], [38, 103], [33, 106],
@@ -142,8 +156,10 @@ const markers = {
     [18, 75], [42, 107], [55, 120], [53, 70], [51, 74], [44, 78], [39, 64],
     [36, 57], [32, 58], [31, 26], [35, 29], [39, 33], [39, 41], [54, 43], [30, 21],
     [27, 17], [47, 34], [56, 35], [58, 40]],
-  E: [[19, 49]],
-  R: [[27, 47]],
+  E: [[19, 51], [28, 24], [15, 61]],
+  R: [[27, 47], [11, 44], [26, 21], [47, 37]],
+  M: [[51, 37]],
+  B: [[7, 47], [33, 24], [38, 70]],
 }
 
 function typeWritter(txt, t = 0) {
@@ -199,9 +215,10 @@ for (let i = 0; i < planetRLE.length; i += 1) {
       flag = !flag
       index += 1
     }
-    map[i].push((flag) ? { symbol: '\u00A0' } : { symbol: '*' })
+    map[i].push((flag) ? { symbol: '\u00A0' } : { symbol: '·' })
     map[i][j].y = i
     map[i][j].x = j
+    map[i][j].connected = false
   }
 }
 function insertMarkers() {
@@ -323,19 +340,19 @@ function connectToBase(tile, hub) {
     return true
   }
   if (tile.y < hub.y) {
-    tile.symbol = (tile.symbol === '*' || tile.symbol === '\u00A0') ? '|' : tile.symbol
+    tile.symbol = (tile.symbol === '·' || tile.symbol === '\u00A0') ? '|' : tile.symbol
     return connectToBase(map[tile.y + 1][tile.x], hub)
   }
   if (tile.y > hub.y) {
-    tile.symbol = (tile.symbol === '*' || tile.symbol === '\u00A0') ? '|' : tile.symbol
+    tile.symbol = (tile.symbol === '·' || tile.symbol === '\u00A0') ? '|' : tile.symbol
     return connectToBase(map[tile.y - 1][tile.x], hub)
   }
   if (tile.x < hub.x) {
-    tile.symbol = (tile.symbol === '*' || tile.symbol === '\u00A0') ? '-' : tile.symbol
+    tile.symbol = (tile.symbol === '·' || tile.symbol === '\u00A0') ? '-' : tile.symbol
     return connectToBase(map[tile.y][tile.x + 1], hub)
   }
   if (tile.x > hub.x) {
-    tile.symbol = (tile.symbol === '*' || tile.symbol === '\u00A0') ? '-' : tile.symbol
+    tile.symbol = (tile.symbol === '·' || tile.symbol === '\u00A0') ? '-' : tile.symbol
     return connectToBase(map[tile.y][tile.x - 1], hub)
   }
 }
@@ -351,10 +368,20 @@ function energyMineEstablished(tile) {
   connectToBase(tile, hub)
   addToNetwork(tile)
 }
+function energyMine(tile) {
+  if (!tile.connected) {
+    eventMan.establishMine(tile, explorer, 'Energy', energyMineEstablished)
+  }
+}
 function rareMineEstablished(tile) {
   const hub = network[getNearestHub(tile)]
   connectToBase(tile, hub)
   addToNetwork(tile)
+}
+function initBeacon(tile) {
+}
+function hiveFight(tile) {
+  hiveDefated(tile)
 }
 
 function tileAction(tile) {
@@ -363,17 +390,17 @@ function tileAction(tile) {
     //explorer.energy -= 1
     explorerUpdate()
     switch (tile.symbol) {
-      case 'B':
+      case 'S':
         explorer.active = false
         map[base.y][base.x].symbol = base.symbol
         map[explorer.y][explorer.x].exp = false
         explorer.health = explorer.healthMax
         break
       case 'H':
-        hiveDefated(tile)
+        hiveFight(tile)
         break
       case 'E':
-        energyMineEstablished(tile)
+        energyMine(tile)
         break
       case 'R':
         rareMineEstablished(tile)
@@ -384,6 +411,9 @@ function tileAction(tile) {
       case '|':
         explorer.energy += 1
         break
+      case '?':
+        initBeacon()
+        break
       default:
         break
     }
@@ -393,7 +423,7 @@ function tileAction(tile) {
 }
 
 document.onkeypress = (e) => {
-  if (true  /*explorer.active*/) {
+  if (explorer.active) {
     map[explorer.y][explorer.x].exp = false
     let dx = 0
     switch (e.keyCode) {
@@ -414,21 +444,35 @@ document.onkeypress = (e) => {
       default:
         break
     }
-    //console.log(explorer.y, explorer.x)
+    // console.log(explorer.y, explorer.x)
     map[explorer.y][explorer.x].exp = true
     tileAction(map[explorer.y][explorer.x])
     display(dx)
   }
 }
 
-/* GAME LOOPS */
+const game = {
+  on: true,
+  pause() {
+    game.on = false
+    explorer.active = false
+  },
+
+  resume() {
+    game.on = true
+    explorer.active = true
+  },
+}
+
 setInterval(() => {
 }, 10000)
 setInterval(() => {
-  if (base.droids.reactor) { wrBtn.click() }
-  if (base.droids.extractor) { weBtn.click() }
+  if (game.on) {
+    if (base.droids.reactor) { wrBtn.click() }
+    if (base.droids.extractor) { weBtn.click() }
+
+  }
 }, 10)
-/* END OF GAME LOOPS */
 
 function cooldown(time, button, btnText, callback) {
   /* eslint-disable no-param-reassign, no-shadow, consistent-return */
@@ -495,11 +539,11 @@ function workExtractor() {
 function buildDroid() {
   if (bdBtn.className === 'btn active') {
     bdBtn.className = 'btn'
-    cooldown(20000, bdBtn, 'build droid', [reactivate, bdBtn])
+    cooldown(200, bdBtn, 'build droid', [reactivate, bdBtn])
     setTimeout(() => {
       base.droids.idle += 1
       getById('resource-droids').innerHTML = `avaiable droids: ${base.droids.idle}`
-    }, 20000)
+    }, 200)
   }
 }
 function droidReactor() {
@@ -606,6 +650,7 @@ uwBtn.addEventListener('click', upgWeapon)
 deployBtn.addEventListener('click', deploy)
 eexBtn.addEventListener('click', energyExplorer)
 dexBtn.addEventListener('click', droidsExplorer)
+
 drawMap()
 display()
 </script>
