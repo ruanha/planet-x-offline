@@ -1,6 +1,28 @@
 const eventMan = {
 
-  activePanel:undefined,
+  activePanel: undefined,
+
+  gameOver() {
+    const panels = document.getElementsByClassName('hideit')
+    for (let i = 0; i < panels.length; i+= 1) {
+      console.log(panels[i])
+      panels[i].style.visibility = 'hidden'
+    }
+    const eventPanel = document.createElement('div')
+    eventPanel.setAttribute('id', 'event')
+    eventPanel.setAttribute('data-legend', '')
+    document.getElementById('container').appendChild(eventPanel)
+
+    const title = 'All systems online!'
+    const text = 'Another alien world conquered.'
+      + 'With the beacons online this world quickly falls.'
+
+    const box = document.getElementById('event')
+    box.textContent = text
+    box.setAttribute('data-legend', title)
+
+    eventMan.activePanel = eventPanel
+  },
 
   closeButton() {
     if (!eventMan.hasOwnProperty('closeBtn')) {
