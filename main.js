@@ -4,16 +4,9 @@ const messages = {
   intro: 'starship has crashed on a strange planet',
   intro2: 'all systems are offline',
   resources: 'not enough resources',
-  dead: 'explorer is lost, it\'s a harsh new world',
+  dead: 'explorer is lost - be careful in this hostile world',
 }
-const enemyLvl1 = {
-  health: 5,
-  damage: 1,
-  delay: 1500,
-  weaponIcon: '-',
-  icon: '@enemy',
-  loot: { rare: 2, energy: 5 },
-}
+
 const base = {
   y: 21, // 21
   x: 46, // 46
@@ -38,6 +31,19 @@ const explorer = {
   cargoMax: 20,
   health: 10,
   healthMax: 10,
+  weapons: [],
+  displayShield() {
+    if (explorer.shield > 0 && explorer.shield <= 5) {
+      return ' |'
+    }
+    if (explorer.shield > 0 && explorer.shield <= 10) {
+      return ' ||'
+    }
+    if (explorer.shield > 0 && explorer.shield <= 15) {
+      return ' |||'
+    }
+    return ''
+  },
 }
 const markers = {
   S: [[base.y, base.x]],
@@ -191,12 +197,14 @@ function initExplorer() {
   explorer.torpedos = 0
   explorer.active = false
 }
-function deadByEnergy() {
+
+function playerDead() {
   map[explorer.y][explorer.x].exp = false
   planet.classList.toggle('fade')
   typeWritter(messages.dead)
   initExplorer()
 }
+
 const network = { [`${base.y} ${base.x}`]: base }
 
 function addToNetwork(tile) {
@@ -313,7 +321,8 @@ function initBeacon(tile) {
   }
 }
 function hiveFight(tile) {
-  hiveDefated(tile)
+  eventMan.fight(tile, explorer, hiveDefated)
+  enemy.interval = setInterval(eventMan.enemyAttack, enemy.delay)
 }
 
 function tileAction(tile) {
@@ -350,7 +359,7 @@ function tileAction(tile) {
         break
     }
   } else {
-    deadByEnergy()
+    playerDead()
   }
 }
 
@@ -537,12 +546,13 @@ function deploy() {
 }
 function upgBattery() {
   if (ubBtn.className === 'btn active') {
-    const levels = [15, 30, 100]
-    const cooldowns = [10000, 25000, 60000]
-    const lvlRoman = ['I', 'II', 'III']
+    const levels = [30, 100]
+    const cooldowns = [10000, 25000]
+    const lvlRoman = ['II', 'III']
     cooldown(cooldowns[upgBattery.level], ubBtn, `battery ${lvlRoman[upgBattery.level]}`, [() => {
       explorer.energyMax = levels[upgBattery.level]
       upgBattery.level += 1
+      updateAllPanels()
       if (upgBattery.level === 3) {
         ubBtn.classList.remove('active')
       }
@@ -559,6 +569,7 @@ function upgShield() {
     cooldown(cooldowns[upgShield.level], usBtn, `shield ${lvlRoman[upgShield.level]}`, [() => {
       explorer.shieldMax = levels[upgShield.level]
       upgShield.level += 1
+      updateAllPanels()
       if (upgShield.level === 3) {
         usBtn.classList.remove('active')
       }

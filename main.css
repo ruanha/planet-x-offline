@@ -26,7 +26,54 @@ position: relative;top: 5%;}
 #build{float:left;}
 #load{float:left;}
 #explorer-resources{margin-top:50px;}
-#event{padding:10px;background-color: white;border:2px solid black;position: absolute;left:800px;top:270px;width:450px;z-index:20;visibility:"hidden";}
+#event{padding:10px;background-color: white;border:2px solid black;position: absolute;left:800px;top:270px;width:350px;z-index:20;visibility:"hidden";}
 #event-top-panel{overflow:auto;}
 div#event:before{position:absolute;background:white;content:attr(data-legend);
 left:8px;top:-13px;}
+
+#event-top-panel{
+  overflow: auto;
+}
+#explorer-health-bar, #explorer-shield{
+  clear: both;
+  float:left;
+}
+
+#enemy-health-bar{
+  float:right;
+}
+
+#fight-table{
+  border-collapse: collapse;
+  width: 100%; 
+}
+
+#battle-player-icon{
+  text-align: left;
+  width: 25%;
+}
+
+#battle-enemy-icon{
+  text-align: right;
+  width: 20%;
+}
+
+.ground-cells{
+  text-align: center;
+  width:10%;
+}
+/* ROWS */
+
+.rowKey {
+	width:75px;
+	clear: both;
+	float: left;
+}
+
+.rowVal {
+	float: left;
+}
+
+.row{
+	margin-top:10px;
+}
