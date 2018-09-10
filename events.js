@@ -1,6 +1,8 @@
 const NUMBER_OF_CELLS = 6
 
-const enemy = {
+const enemy1 = {
+  title: 'stuff',
+  text: 'its so eveil!',
   health: 5,
   damage: 0,
   delay: 1500,
@@ -9,8 +11,46 @@ const enemy = {
   loot: { rare: 2, energy: 5 },
 }
 
+const enemy2 = {
+  title: 'stuff',
+  text: 'its so eveil2!',
+  health: 15,
+  damage: 5,
+  delay: 1500,
+  weaponIcon: '*',
+  icon: '@enemy',
+  loot: { rare: 5, energy: 15 },
+}
+
+const enemy3 = {
+  title: 'stuff',
+  text: 'its so eveil2!',
+  health: 15,
+  damage: 5,
+  delay: 1500,
+  weaponIcon: '*',
+  icon: '@enemy',
+  loot: { rare: 5, energy: 15 },
+}
+
+function EnemyFactory(enemy) {
+  this.title = enemy.title
+  this.text = enemy.text
+  this.health = enemy.health
+  this.damage = enemy.damage
+  this.delay = enemy.delay
+  this.weaponIcon = enemy.weaponIcon
+  this.icon = enemy.icon
+  this.loot = {}
+  Object.assign(this.loot, enemy.loot)
+}
 
 const eventMan = {
+  enemy: {},
+
+  loadEnemy(enemy) {
+    eventMan.enemy = new EnemyFactory(enemy)
+  },
 
   activePanel: undefined,
 
@@ -104,7 +144,7 @@ const eventMan = {
 
     const enemyHealthBar = document.createElement('div')
     enemyHealthBar.setAttribute('id', 'enemy-health-bar')
-    enemyHealthBar.textContent = `health ${enemy.health}`
+    enemyHealthBar.textContent = `health ${eventMan.enemy.health}`
 
     let explorerShield = document.createElement('div')
     explorerShield.setAttribute('id', 'explorer-shield')
@@ -252,14 +292,14 @@ const eventMan = {
   },
 
   enemyAttack() {
-    eventMan.animation(enemy.weaponIcon, enemy.icon, 200)
+    eventMan.animation(eventMan.enemy.weaponIcon, eventMan.enemy.icon, 200)
     setTimeout(() => {
       if (explorer.shield > 0) {
-        explorer.shield -= enemy.damage
+        explorer.shield -= eventMan.enemy.damage
         document.getElementById('explorer-shield').textContent = `shield ${explorer.shield}/${explorer.shieldMax}`
         document.getElementById('battle-player-icon').textContent = `@explorer ${explorer.displayShield()}`
       } else {
-        explorer.health -= enemy.damage
+        explorer.health -= eventMan.enemy.damage
         document.getElementById('explorer-health-bar').textContent = `health ${explorer.health}/${explorer.healthMax}`
       }
       // Is dead?
@@ -275,12 +315,12 @@ const eventMan = {
   playerAttack(damage) {
     console.log(damage)
     if (damage === 'slow') {
-      enemy.delay = Math.round(enemy.delay * 3)
+      eventMan.enemy.delay = Math.round(eventMan.enemy.delay * 3)
       clearInterval(enemy.interval)
-      enemy.interval = setInterval(eventMan.enemyAttack, enemy.delay)
+      eventMan.enemy.interval = setInterval(eventMan.enemyAttack, eventMan.enemy.delay)
     } else {
-      enemy.health -= damage
-      if (enemy.health <= 0) {
+      eventMan.enemy.health -= damage
+      if (eventMan.enemy.health <= 0) {
         eventMan.enemyDead()
       } else {
         document.getElementById('enemy-health-bar').textContent = `health ${enemy.health}`
@@ -309,7 +349,7 @@ const eventMan = {
     topPanel.setAttribute('id', 'event-top-panel')
     topPanel = eventMan.displayFight(topPanel)
 
-    Object.entries(enemy.loot).forEach(([key, val]) => {
+    Object.entries(eventMan.enemy.loot).forEach(([key, val]) => {
       const btn = document.createElement('div')
       btn.setAttribute('class', 'btn active')
       btn.textContent = key
@@ -318,18 +358,18 @@ const eventMan = {
         const btn = event.target
         if (btn.className === 'btn active') {
           if (btn.textContent === 'energy' && explorer.energy < explorer.energyMax
-              && enemy.loot.energy > 0) {
+              && eventMan.enemy.loot.energy > 0) {
             explorer.energy += 1
-            enemy.loot.energy -= 1
+            eventMan.enemy.loot.energy -= 1
             updateAllPanels()
-            if (enemy.loot.energy === 0) {
+            if (eventMan.enemy.loot.energy === 0) {
               btn.classList.remove('active')
             }
           } else {
             explorer[btn.textContent] += 1
-            enemy.loot[key] -= 1
+            eventMan.enemy.loot[key] -= 1
             updateAllPanels()
-            if (enemy.loot[btn.textContent] === 0) {
+            if (eventMan.enemy.loot[btn.textContent] === 0) {
               btn.classList.remove('active')
             }
           }
@@ -351,7 +391,8 @@ const eventMan = {
   },
 
   enemyDead() {
-    clearInterval(enemy.interval)
+    clearInterval(eventMan.enemy.interval)
+    // eventMan.enemy = {}
     eventMan.activePanel.parentNode.removeChild(eventMan.activePanel)
     eventMan.displayLoot()
     // events.display( buttons.lootBtns(), false, false )

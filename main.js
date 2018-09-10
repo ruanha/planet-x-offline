@@ -324,8 +324,9 @@ function initBeacon(tile) {
   }
 }
 function hiveFight(tile) {
+  eventMan.loadEnemy(enemy1)
   eventMan.fight(tile, explorer, hiveDefated)
-  enemy.interval = setInterval(eventMan.enemyAttack, enemy.delay)
+  eventMan.enemy.interval = setInterval(eventMan.enemyAttack, eventMan.enemy.delay)
 }
 
 function tileAction(tile) {
