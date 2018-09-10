@@ -24,14 +24,19 @@ const explorer = {
   active: false,
   energy: 0,
   energyMax: 15,
+  rare: 0,
+  metals: 0,
   shield: 0,
   shieldMax: 0,
   droids: 0,
+  droidsMax: 2,
   cargo: 0,
   cargoMax: 20,
   health: 10,
   healthMax: 10,
-  weapons: [],
+  weapon: 10,
+  weaponSpeed: 200,
+  weaponIcon: '·',
   displayShield() {
     if (explorer.shield > 0 && explorer.shield <= 5) {
       return ' |'
@@ -214,10 +219,8 @@ function getNearestHub(tile) {
   let smallestDist
   let nearest = ''
   const keys = Object.keys(network)
-  console.log(keys)
   keys.forEach((key) => {
     if (network.hasOwnProperty(key)) {
-      console.log(key)
       const dist = Math.sqrt(((network[key].x - tile.x) ** 2) + ((network[key].y - tile.y) ** 2))
       if (!smallestDist) {
         smallestDist = dist
@@ -327,8 +330,8 @@ function hiveFight(tile) {
 
 function tileAction(tile) {
   if (canMove()) {
-    console.log(tile.y, tile.x)
-    //explorer.energy -= 1
+    // console.log(tile.y, tile.x)
+    // explorer.energy -= 1
     explorerUpdate()
     switch (tile.symbol) {
       case 'S':
@@ -410,8 +413,10 @@ function updateAllPanels() {
   getById('resource-metals').innerHTML = `metals: ${base.metals}`
   getById('resource-energy').innerHTML = `energy: ${base.energy}`
   getById('resource-rare').innerHTML = `rare: ${base.rare}`
-  getById('explorer-droids').innerHTML = `droids: ${explorer.droids}/${explorer.cargoMax}`
+  getById('explorer-droids').innerHTML = `droids: ${explorer.droids}/${explorer.droidsMax}`
   getById('explorer-energy').innerHTML = `energy: ${explorer.energy}/${explorer.energyMax}`
+  getById('explorer-cargo').innerHTML = `cargo: ${explorer.metals
+    + explorer.rare}/${explorer.cargoMax}`
 }
 function offbase() {
   Object.keys(network).forEach((key) => {
@@ -546,11 +551,11 @@ function deploy() {
 }
 function upgBattery() {
   if (ubBtn.className === 'btn active') {
-    const levels = [30, 100]
-    const cooldowns = [10000, 25000]
-    const lvlRoman = ['II', 'III']
+    const value = [20, 50, 100]
+    const cooldowns = [100, 250, 600]
+    const lvlRoman = ['II', 'III', '(max)']
     cooldown(cooldowns[upgBattery.level], ubBtn, `battery ${lvlRoman[upgBattery.level]}`, [() => {
-      explorer.energyMax = levels[upgBattery.level]
+      explorer.energyMax = value[upgBattery.level]
       upgBattery.level += 1
       updateAllPanels()
       if (upgBattery.level === 3) {
@@ -563,11 +568,11 @@ upgBattery.level = 0
 
 function upgShield() {
   if (usBtn.className === 'btn active') {
-    const levels = [5, 10, 15]
+    const value = [5, 10, 15]
     const cooldowns = [100, 250, 600]
-    const lvlRoman = ['I', 'II', 'III']
+    const lvlRoman = ['II', 'III', '(max)']
     cooldown(cooldowns[upgShield.level], usBtn, `shield ${lvlRoman[upgShield.level]}`, [() => {
-      explorer.shieldMax = levels[upgShield.level]
+      explorer.shieldMax = value[upgShield.level]
       upgShield.level += 1
       updateAllPanels()
       if (upgShield.level === 3) {
@@ -579,9 +584,30 @@ function upgShield() {
 upgShield.level = 0
 
 function upgWeapon() {
-  cooldown(10000, uwBtn, 'weapon II', [() => {
-  }, uwBtn])
+  if (uwBtn.className === 'btn active') {
+    const cooldowns = [100, 250, 600]
+    const lvlRoman = ['II', 'III', '(max)']
+    cooldown(cooldowns[upgWeapon.level], uwBtn, `weapon ${lvlRoman[upgWeapon.level]}`, [() => {
+      upgWeapon.level += 1
+      if (upgWeapon.level === 1) {
+        explorer.plasma = 10
+        explorer.plasmaSpeed = 400
+        explorer.plasmaIcon = 'o'
+      } else if (upgWeapon.level === 2) {
+        explorer.slowdown = 'slow'
+        explorer.slowdownSpeed = 1000
+        explorer.slowdownIcon = '¤'
+      } else if (upgWeapon.level === 3) {
+        explorer.mega = 'mega'
+        explorer.megaSpeed = 2000
+        explorer.megaIcon = '§'
+        uwBtn.classList.remove('active')
+      }
+    }, uwBtn])
+  }
 }
+upgWeapon.level = 0
+
 function energyExplorer() {
   if (base.energy && explorer.energy < explorer.energyMax) {
     explorer.energy += 1
@@ -590,7 +616,7 @@ function energyExplorer() {
   updateAllPanels()
 }
 function droidsExplorer() {
-  if ((base.droids.idle) && (explorer.cargo < explorer.cargoMax)) {
+  if ((base.droids.idle) && (explorer.droids < explorer.droidsMax)) {
     explorer.droids += 1
     base.droids.idle -= 1
   }
