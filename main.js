@@ -258,14 +258,6 @@ function connectToBase(tile, hub) {
     return connectToBase(map[tile.y][tile.x - 1], hub)
   }
 }
-function hiveDefated(tile) {
-  // tile is a reference to the active map-tile at map[y][x]
-  const hub = network[getNearestHub(tile)]
-  tile.symbol = 'X'
-  connectToBase(tile, hub)
-  addToNetwork(tile)
-  display()
-}
 function energyMineEstablished(tile) {
   const hub = network[getNearestHub(tile)]
   connectToBase(tile, hub)
@@ -324,8 +316,8 @@ function initBeacon(tile) {
   }
 }
 function hiveFight(tile) {
-  eventMan.loadEnemy(enemy1)
-  eventMan.fight(tile, explorer, hiveDefated)
+  eventMan.loadEnemy(enemyHive, tile)
+  eventMan.fight(tile, explorer)
   eventMan.enemy.interval = setInterval(eventMan.enemyAttack, eventMan.enemy.delay)
 }
 

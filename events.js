@@ -1,36 +1,48 @@
 const NUMBER_OF_CELLS = 6
 
-const enemy1 = {
-  title: 'stuff',
-  text: 'its so eveil!',
+const enemySmall = {
+  title: 'An Unknown Alien',
+  text: 'An unknown alien attacks!',
   health: 5,
   damage: 0,
   delay: 1500,
   weaponIcon: '-',
   icon: '@enemy',
   loot: { rare: 2, energy: 5 },
+  defeated() {
+  },
 }
 
-const enemy2 = {
-  title: 'stuff',
-  text: 'its so eveil2!',
+const enemyBig = {
+  title: 'A Large Alien',
+  text: 'A large unknown alien attacks!',
   health: 15,
   damage: 5,
   delay: 1500,
   weaponIcon: '*',
   icon: '@enemy',
   loot: { rare: 5, energy: 15 },
+  defeated() {
+  },
 }
 
-const enemy3 = {
-  title: 'stuff',
-  text: 'its so eveil2!',
-  health: 15,
-  damage: 5,
+const enemyHive = {
+  title: 'A hive full of hideous aliens',
+  text: 'You enter a hive. Millions of alien creatures reside here. Get ready to fight',
+  health: 5,
+  damage: 1,
   delay: 1500,
   weaponIcon: '*',
   icon: '@enemy',
   loot: { rare: 5, energy: 15 },
+  defeated() {
+    // tile is a reference to the active map-tile at map[y][x]
+    const hub = network[getNearestHub(this.tile)]
+    this.tile.symbol = 'X'
+    connectToBase(this.tile, hub)
+    addToNetwork(this.tile)
+    display()
+  },
 }
 
 function EnemyFactory(enemy) {
@@ -42,14 +54,16 @@ function EnemyFactory(enemy) {
   this.weaponIcon = enemy.weaponIcon
   this.icon = enemy.icon
   this.loot = {}
+  this.defeated = enemy.defeated
   Object.assign(this.loot, enemy.loot)
 }
 
 const eventMan = {
   enemy: {},
 
-  loadEnemy(enemy) {
+  loadEnemy(enemy, tile) {
     eventMan.enemy = new EnemyFactory(enemy)
+    eventMan.enemy.tile = tile
   },
 
   activePanel: undefined,
@@ -214,14 +228,13 @@ const eventMan = {
     for (let i = 0; i < availableBattleButtons.length; i += 1) {
       panel.appendChild(availableBattleButtons[i])
     }
-    // console.log(availableBattleButtons)
     return panel
   },
 
-  fight(tile, explorer, callback) {
+  fight(tile, explorer) {
     game.pause()
-    const title = 'A hive full of hideous aliens'
-    const text = 'You enter a hive. Millions of alien creatures reside here. Get ready to fight'
+    const title = eventMan.enemy.title
+    const text = eventMan.enemy.text
 
     const eventPanel = document.createElement('div')
     eventPanel.setAttribute('id', 'event')
@@ -313,7 +326,6 @@ const eventMan = {
   },
 
   playerAttack(damage) {
-    console.log(damage)
     if (damage === 'slow') {
       eventMan.enemy.delay = Math.round(eventMan.enemy.delay * 3)
       clearInterval(enemy.interval)
@@ -392,7 +404,7 @@ const eventMan = {
 
   enemyDead() {
     clearInterval(eventMan.enemy.interval)
-    // eventMan.enemy = {}
+    eventMan.enemy.defeated()
     eventMan.activePanel.parentNode.removeChild(eventMan.activePanel)
     eventMan.displayLoot()
     // events.display( buttons.lootBtns(), false, false )
