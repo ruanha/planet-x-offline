@@ -37,6 +37,7 @@ const explorer = {
   weapon: 10,
   weaponSpeed: 200,
   weaponIcon: '·',
+  distanceFromBase: 0,
   displayShield() {
     if (explorer.shield > 0 && explorer.shield <= 5) {
       return ' |'
@@ -49,6 +50,20 @@ const explorer = {
     }
     return ''
   },
+
+  chargeShield() {
+    if (explorer.shield < explorer.shieldMax) {
+      explorer.energy -= 1
+      explorer.shield = ((explorer.shieldMax - explorer.shield) < 10) ? explorer.shieldMax
+        : explorer.shield + 10
+    }
+    updateAllPanels()
+    explorer.displayShield()
+  },
+
+  setDistance() {
+    explorer.distanceFromBase = Math.abs(explorer.x-base.x) + Math.abs(explorer.y-base.y)
+  },
 }
 const markers = {
   S: [[base.y, base.x]],
@@ -60,8 +75,9 @@ const markers = {
     [36, 57], [32, 58], [31, 26], [35, 29], [39, 33], [39, 41], [54, 43], [30, 21],
     [27, 17], [47, 34], [56, 35], [58, 40]],
   E: [[19, 51], [28, 24], [15, 61]],
-  R: [[27, 47], [11, 44], [26, 21], [47, 37]],
-  M: [[51, 37]],
+  // R: [[27, 47], [11, 44], [26, 21], [47, 37]],
+  M: [[27, 47], [11, 44], [26, 21], [47, 37]],
+  // M: [[51, 37]],
   B: [[7, 47], [33, 24], [38, 70]],
 }
 
@@ -320,9 +336,20 @@ function hiveFight(tile) {
   eventMan.fight(tile, explorer)
   eventMan.enemy.interval = setInterval(eventMan.enemyAttack, eventMan.enemy.delay)
 }
+function randomFightSmall(tile) {
+  eventMan.loadEnemy(enemySmall, tile)
+  eventMan.fight(tile, explorer)
+  eventMan.enemy.interval = setInterval(eventMan.enemyAttack, eventMan.enemy.delay)
+}
+function randomFightBig(tile) {
+  eventMan.loadEnemy(enemyBig, tile)
+  eventMan.fight(tile, explorer)
+  eventMan.enemy.interval = setInterval(eventMan.enemyAttack, eventMan.enemy.delay)
+}
 
 function tileAction(tile) {
   if (canMove()) {
+    explorer.setDistance()
     // console.log(tile.y, tile.x)
     // explorer.energy -= 1
     explorerUpdate()
@@ -332,6 +359,7 @@ function tileAction(tile) {
         map[base.y][base.x].symbol = base.symbol
         map[explorer.y][explorer.x].exp = false
         explorer.health = explorer.healthMax
+        explorer.shield = explorer.shieldMax
         break
       case 'H':
         hiveFight(tile)
@@ -351,7 +379,16 @@ function tileAction(tile) {
       case 'B':
         initBeacon(tile)
         break
+      case 'X':
+        break
       default:
+        if (Math.random() > 0.9 && explorer.distanceFromBase > 2) {
+          if (explorer.distanceFromBase < 10) {
+            randomFightSmall(tile)
+          } else {
+            randomFightBig(tile)
+          }
+        }
         break
     }
   } else {
@@ -566,6 +603,7 @@ function upgShield() {
     const lvlRoman = ['II', 'III', '(max)']
     cooldown(cooldowns[upgShield.level], usBtn, `shield ${lvlRoman[upgShield.level]}`, [() => {
       explorer.shieldMax = value[upgShield.level]
+      explorer.shield = explorer.shieldMax
       upgShield.level += 1
       updateAllPanels()
       if (upgShield.level === 3) {
@@ -583,17 +621,17 @@ function upgWeapon() {
     cooldown(cooldowns[upgWeapon.level], uwBtn, `weapon ${lvlRoman[upgWeapon.level]}`, [() => {
       upgWeapon.level += 1
       if (upgWeapon.level === 1) {
-        explorer.plasma = 10
-        explorer.plasmaSpeed = 400
-        explorer.plasmaIcon = 'o'
-      } else if (upgWeapon.level === 2) {
         explorer.slowdown = 'slow'
         explorer.slowdownSpeed = 1000
         explorer.slowdownIcon = '¤'
+      } else if (upgWeapon.level === 2) {
+        explorer.plasma = 10
+        explorer.plasmaSpeed = 400
+        explorer.plasmaIcon = 'o'
       } else if (upgWeapon.level === 3) {
-        explorer.mega = 'mega'
-        explorer.megaSpeed = 2000
-        explorer.megaIcon = '§'
+        explorer.blocker = 'block'
+        explorer.blockerSpeed = 2000
+        explorer.blockerIcon = ')'
         uwBtn.classList.remove('active')
       }
     }, uwBtn])

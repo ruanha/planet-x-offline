@@ -3,12 +3,12 @@ const NUMBER_OF_CELLS = 6
 const enemySmall = {
   title: 'An Unknown Alien',
   text: 'An unknown alien attacks!',
-  health: 5,
-  damage: 0,
+  health: 10,
+  damage: 1,
   delay: 1500,
   weaponIcon: '-',
   icon: '@enemy',
-  loot: { rare: 2, energy: 5 },
+  loot: { rare: 1, metals: 1, energy: 5 },
   defeated() {
   },
 }
@@ -16,12 +16,12 @@ const enemySmall = {
 const enemyBig = {
   title: 'A Large Alien',
   text: 'A large unknown alien attacks!',
-  health: 15,
-  damage: 5,
+  health: 25,
+  damage: 3,
   delay: 1500,
   weaponIcon: '*',
   icon: '@enemy',
-  loot: { rare: 5, energy: 15 },
+  loot: { rare: 2, metals: 2, energy: 10 },
   defeated() {
   },
 }
@@ -29,12 +29,12 @@ const enemyBig = {
 const enemyHive = {
   title: 'A hive full of hideous aliens',
   text: 'You enter a hive. Millions of alien creatures reside here. Get ready to fight',
-  health: 5,
-  damage: 1,
+  health: 50,
+  damage: 10,
   delay: 1500,
   weaponIcon: '*',
   icon: '@enemy',
-  loot: { rare: 5, energy: 15 },
+  loot: { rare: 10, metals: 5, energy: 15 },
   defeated() {
     // tile is a reference to the active map-tile at map[y][x]
     const hub = network[getNearestHub(this.tile)]
@@ -201,11 +201,94 @@ const eventMan = {
     weapon.setAttribute('class', 'btn active')
     weapon.addEventListener('click', () => {
       if (weapon.className === 'btn active') {
-        setTimeout(eventMan.playerAttack, explorer.weaponSpeed*NUMBER_OF_CELLS, explorer.weapon)
+        setTimeout(eventMan.playerAttack, explorer.weaponSpeed * NUMBER_OF_CELLS, explorer.weapon)
         weapon.classList.remove('active')
         eventMan.animation(explorer.weaponIcon, explorer.symbol, explorer.weaponSpeed)
         cooldown(1000, weapon, 'weapon', [() => {
           weapon.className = 'btn active'
+        }])
+      }
+    })
+
+    const chargeShield = document.createElement('div')
+    chargeShield.textContent = 'charge shield'
+    chargeShield.setAttribute('class', 'btn active')
+    chargeShield.addEventListener('click', () => {
+      if (explorer.energy > 0) {
+        explorer.chargeShield()
+        cooldown(1000, chargeShield, 'charge shield', [() => {
+          chargeShield.className = 'btn active'
+          document.getElementById('explorer-shield').textContent = `shield ${explorer.shield}/${explorer.shieldMax}`
+          document.getElementById("battle-player-icon").textContent = `@explorer${explorer.displayShield()}`
+        }])
+      }
+      else {
+        typeWritter('not enough energy to charge shield')
+      }
+    })
+
+    const plasma = document.createElement('div')
+    plasma.textContent = 'plasma'
+    plasma.setAttribute('class', 'btn active')
+    plasma.addEventListener('click', () => {
+      if (plasma.className === 'btn active') {
+        plasma.classList.remove('active')
+        setTimeout(eventMan.playerAttack, explorer.plasmaSpeed * NUMBER_OF_CELLS, explorer.plasma)
+        eventMan.animation(explorer.plasmaIcon, explorer.symbol, explorer.plasmaSpeed)
+        cooldown(1000, plasma, 'plasma', [() => {
+          plasma.setAttribute('class', 'btn active')
+        }])
+      }
+    })
+
+    const slowdown = document.createElement('div')
+    slowdown.textContent = 'slowdown'
+    slowdown.setAttribute('class', 'btn active')
+    slowdown.addEventListener('click', () => {
+      if (slowdown.className === 'btn active') {
+        slowdown.classList.remove('active')
+        setTimeout(eventMan.playerAttack, explorer.slowdownSpeed
+          * NUMBER_OF_CELLS, explorer.slowdown)
+        eventMan.animation(explorer.slowdownIcon, explorer.symbol, explorer.slowdownSpeed)
+        cooldown(1000, slowdown, 'slowdown', [() => {
+          slowdown.setAttribute('class', 'btn active')
+        }])
+      }
+    })
+
+    const blocker = document.createElement('div')
+    blocker.textContent = 'block-field'
+    blocker.setAttribute('class', 'btn active')
+    blocker.addEventListener('click', () => {
+      if (blocker.className === 'btn active') {
+        blocker.classList.remove('active')
+        const tempEnemy = eventMan.enemy.damage
+        const tempWeapon = explorer.weapon
+        const tempPlasma = explorer.plasma
+        explorer.weapon = 0
+        explorer.plasma = 0
+        eventMan.enemy.damage = 0
+        for (let i = 0; i < availableBattleButtons.length; i += 1) {
+          if (availableBattleButtons[i] !== chargeShield) {
+            availableBattleButtons[i].setAttribute('class', 'btn')
+          }
+        }
+        setTimeout(() => {
+          eventMan.enemy.damage = tempEnemy
+          explorer.weapon = tempWeapon
+          explorer.plasma = tempPlasma
+          for (let i = 0; i < availableBattleButtons.length; i += 1) {
+            if (availableBattleButtons[i] !== chargeShield) {
+              availableBattleButtons[i].setAttribute('class', 'btn active')
+            }
+          }
+        }, explorer.blockerSpeed * NUMBER_OF_CELLS)
+
+        setTimeout(eventMan.playerAttack, explorer.blockerSpeed
+          * NUMBER_OF_CELLS, explorer.blocker)
+        eventMan.animation(explorer.blockerIcon, explorer.symbol, explorer.blockerSpeed)
+        cooldown(explorer.blockerSpeed * NUMBER_OF_CELLS, blocker, 'block-field', [() => {
+          blocker.setAttribute('class', 'btn active')
         }])
       }
     })
@@ -218,12 +301,16 @@ const eventMan = {
     if (explorer.weapon) {
       availableBattleButtons.push(weapon)
     }
-    if (explorer.plasma) {
-      availableBattleButtons.push(plasmaWeapon)
-    }
     if (explorer.slowdown) {
       availableBattleButtons.push(slowdown)
     }
+    if (explorer.plasma) {
+      availableBattleButtons.push(plasma)
+    }
+    if (explorer.blocker) {
+      availableBattleButtons.push(blocker)
+    }
+
 
     for (let i = 0; i < availableBattleButtons.length; i += 1) {
       panel.appendChild(availableBattleButtons[i])
@@ -291,6 +378,12 @@ const eventMan = {
           // end animation, assert damage, dead?
           eventMan.clearCell(cellIndex + 1, icon)
           return true
+        } else if (document.getElementById(`cell-${cellIndex}`).textContent === explorer.blockerIcon
+          || document.getElementById(`cell-${NUMBER_OF_CELLS-1}`).textContent === explorer.blockerIcon) {
+          for (let i = 0; i < NUMBER_OF_CELLS; i += 1) {
+            eventMan.clearCell(i, icon)
+          }
+          return false
         } else {
           if (cellIndex < NUMBER_OF_CELLS - 1) {
             eventMan.clearCell(cellIndex + 1, icon)
@@ -309,16 +402,21 @@ const eventMan = {
     setTimeout(() => {
       if (explorer.shield > 0) {
         explorer.shield -= eventMan.enemy.damage
+        explorer.health = (explorer.shield < 0) ? explorer.health + explorer.shield
+          : explorer.health
+        explorer.shield = (explorer.shield < 0) ? 0 : explorer.shield
         document.getElementById('explorer-shield').textContent = `shield ${explorer.shield}/${explorer.shieldMax}`
         document.getElementById('battle-player-icon').textContent = `@explorer ${explorer.displayShield()}`
       } else {
-        explorer.health -= eventMan.enemy.damage
-        document.getElementById('explorer-health-bar').textContent = `health ${explorer.health}/${explorer.healthMax}`
+        explorer.health = (eventMan.enemy.damage > explorer.health)
+          ? 0 : explorer.health - eventMan.enemy.damage
       }
+      document.getElementById('explorer-health-bar').textContent = `health ${explorer.health}/${explorer.healthMax}`
       // Is dead?
       if (explorer.health <= 0) {
-        clearInterval(enemy.interval)
-        eventMan.closeBtn.className = 'btn active'
+        console.log("you dead", explorer.health)
+        clearInterval(eventMan.enemy.interval)
+        // eventMan.closeBtn.className = 'btn active'
         eventMan.closePanel()
         playerDead()
       }
@@ -330,9 +428,12 @@ const eventMan = {
       eventMan.enemy.delay = Math.round(eventMan.enemy.delay * 3)
       clearInterval(enemy.interval)
       eventMan.enemy.interval = setInterval(eventMan.enemyAttack, eventMan.enemy.delay)
+    } else if (damage === 'block') {
+
     } else {
       eventMan.enemy.health -= damage
       if (eventMan.enemy.health <= 0) {
+        eventMan.enemy.health = 0
         eventMan.enemyDead()
       } else {
         document.getElementById('enemy-health-bar').textContent = `health ${enemy.health}`
