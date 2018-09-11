@@ -382,7 +382,7 @@ function tileAction(tile) {
       case 'X':
         break
       default:
-        if (Math.random() > 0.9 && explorer.distanceFromBase > 2) {
+        if (Math.random() > 1 && explorer.distanceFromBase > 2) {
           if (explorer.distanceFromBase < 10) {
             randomFightSmall(tile)
           } else {

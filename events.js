@@ -3,7 +3,7 @@ const NUMBER_OF_CELLS = 6
 const enemySmall = {
   title: 'An Unknown Alien',
   text: 'An unknown alien attacks!',
-  health: 10,
+  health: 1,
   damage: 1,
   delay: 1500,
   weaponIcon: '-',
@@ -16,8 +16,8 @@ const enemySmall = {
 const enemyBig = {
   title: 'A Large Alien',
   text: 'A large unknown alien attacks!',
-  health: 25,
-  damage: 3,
+  health: 2,
+  damage: 1,
   delay: 1500,
   weaponIcon: '*',
   icon: '@enemy',
@@ -29,8 +29,8 @@ const enemyBig = {
 const enemyHive = {
   title: 'A hive full of hideous aliens',
   text: 'You enter a hive. Millions of alien creatures reside here. Get ready to fight',
-  health: 50,
-  damage: 10,
+  health: 5,
+  damage: 1,
   delay: 1500,
   weaponIcon: '*',
   icon: '@enemy',
@@ -70,23 +70,19 @@ const eventMan = {
 
   gameOver() {
     const panels = document.getElementsByClassName('hideit')
-    for (let i = 0; i < panels.length; i += 1) {
-      panels[i].style.visibility = 'hidden'
+    getById('messages').style.height = '500px'
+    // getById('messages').style.top = '100px'
+
+    while (panels.length > 0) {
+      panels[0].parentNode.removeChild(panels[0])
     }
-    const eventPanel = document.createElement('div')
-    eventPanel.setAttribute('id', 'event')
-    eventPanel.setAttribute('data-legend', '')
-    document.getElementById('container').appendChild(eventPanel)
 
-    const title = 'All systems online!'
-    const text = 'Another alien world conquered.'
-      + 'With the beacons online this world quickly falls.'
-
-    const box = document.getElementById('event')
-    box.textContent = text
-    box.setAttribute('data-legend', title)
-
-    eventMan.activePanel = eventPanel
+    getById('messages').textContent = ''
+    setTimeout(typeWritter, 0, 'All systems online!')
+    setTimeout(typeWritter, 2500, 'Another alien world conquered')
+    setTimeout(typeWritter, 5000, '···················')
+    setTimeout(typeWritter, 7500, 'END CREDITS')
+    setTimeout(typeWritter, 10000, 'Thank you to everyone at 13kbGames for a fun event/competition')
   },
 
   closeButton() {
