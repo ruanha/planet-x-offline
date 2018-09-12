@@ -81,24 +81,51 @@ const markers = {
   B: [[7, 47], [33, 24], [38, 70]],
 }
 
-function typeWritter(txt, t = 0) {
+const messageStack = []
+const callbackStack = []
+
+function typist(message, callback = null) {
+  if (!messageStack.includes(message)) {
+    messageStack.unshift(message)
+    callbackStack.unshift(callback)
+  }
+  if (!typeWritter.inUse) {
+    typeWritter.inUse = true
+    typeWritter(messageStack.pop(), callbackStack.pop())
+  }
+  else {
+    setTimeout(typist, 100, message)
+  }
+}
+
+function typeWritter(txt, callback = null, t = 0) {
   let tw = t
   if (tw < txt.length) {
     document.getElementById('messages').innerHTML += txt.charAt(tw)
     tw += 1
-    setTimeout(typeWritter, 50, txt, tw)
-  } else { document.getElementById('messages').innerHTML += '<br>' }
+    setTimeout(typeWritter, 50, txt, callback, tw)
+  } else {
+    document.getElementById('messages').innerHTML += '<br>'
+    typeWritter.inUse = false
+    if (callback) {
+      callback()
+    }
+  }
 }
+typeWritter.inUse = false
 
-typeWritter(messages.intro)
-setTimeout(typeWritter, 2500, messages.intro2)
+typist(messages.intro)
+typist(messages.intro2)
 
 function getById(Element) {
   return document.getElementById(Element)
 }
 
 function showBtn(btnId) {
-  document.getElementById(btnId).style.visibility = 'visible'
+  btnId.forEach((btn) => {
+    getById(btn).className = 'btn active'
+  })
+  // document.getElementById(btnId).style.visibility = 'visible'
 }
 
 /* ALL BUTTONS ARE DECLARED HERE */
@@ -222,7 +249,7 @@ function initExplorer() {
 function playerDead() {
   map[explorer.y][explorer.x].exp = false
   planet.classList.toggle('fade')
-  typeWritter(messages.dead)
+  typist(messages.dead)
   initExplorer()
 }
 
@@ -347,6 +374,20 @@ function randomFightBig(tile) {
   eventMan.enemy.interval = setInterval(eventMan.enemyAttack, eventMan.enemy.delay)
 }
 
+function outpost(tile) {
+  /*
+  const mess = document.createElement('div')
+  mess.setAttribute('id', 'event')
+  mess.setAttribute('data-legend', 'A hive ruin turned into an outpost')
+  mess.textContent = 'This hive ruin is now an outpost for you.'
+    + 'There are some resources available'
+
+  getById('container').appendChild(mess)*/
+  console.log('load outpostEvent')
+  eventMan.loadEnemy(outpostEvent, tile)
+  eventMan.displayLoot()
+}
+
 function tileAction(tile) {
   if (canMove()) {
     explorer.setDistance()
@@ -380,6 +421,7 @@ function tileAction(tile) {
         initBeacon(tile)
         break
       case 'X':
+        outpost(tile)
         break
       default:
         if (Math.random() > 1 && explorer.distanceFromBase > 2) {
@@ -495,7 +537,7 @@ function cooldown(time, button, btnText, callback) {
 function restartReactor() {
   if (rrBtn.className === 'btn active') {
     rrBtn.classList.remove('active')
-    cooldown(5000, rrBtn, 'reactor online', [showBtn, 'work-reactor'])
+    cooldown(5000, rrBtn, 'reactor online', [showBtn, ['work-reactor', 'restart-extractor']])
   }
 }
 function restartExtractor() {
@@ -551,7 +593,7 @@ function droidReactor() {
       base.droids.idle -= 1
       updateAllPanels()
     } else {
-      typeWritter(messages.resources)
+      typist(messages.resources)
     }
   }
 }
@@ -563,7 +605,7 @@ function droidExtractor() {
       base.droids.idle -= 1
       updateAllPanels()
     } else {
-      typeWritter(messages.resources)
+      typist(messages.resources)
     }
   }
 }

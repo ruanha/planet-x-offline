@@ -45,16 +45,22 @@ const enemyHive = {
   },
 }
 
+const outpostEvent = {
+  title: 'A hive ruin turned into an outpost',
+  text: 'This hive ruin is now an outpost for you. There are some resources available',
+  loot: { energy: 10 },
+}
+
 function EnemyFactory(enemy) {
   this.title = enemy.title
   this.text = enemy.text
-  this.health = enemy.health
-  this.damage = enemy.damage
-  this.delay = enemy.delay
-  this.weaponIcon = enemy.weaponIcon
-  this.icon = enemy.icon
-  this.loot = {}
-  this.defeated = enemy.defeated
+  this.health = enemy.health || 0
+  this.damage = enemy.damage || 0
+  this.delay = enemy.delay || 1000
+  this.weaponIcon = enemy.weaponIcon || '·'
+  this.icon = enemy.icon || '@enemy'
+  this.loot = {} || {energy:10}
+  this.defeated = enemy.defeated || function(){}
   Object.assign(this.loot, enemy.loot)
 }
 
@@ -78,11 +84,11 @@ const eventMan = {
     }
 
     getById('messages').textContent = ''
-    setTimeout(typeWritter, 0, 'All systems online!')
-    setTimeout(typeWritter, 2500, 'Another alien world conquered')
-    setTimeout(typeWritter, 5000, '···················')
-    setTimeout(typeWritter, 7500, 'END CREDITS')
-    setTimeout(typeWritter, 10000, 'Thank you to everyone at 13kbGames for a fun event/competition')
+    typist('All systems online!')
+    typist('Another alien world conquered')
+    typist('···················')
+    typist('END CREDITS')
+    typist('Thank you to everyone at 13kGames for a fun competition')
   },
 
   closeButton() {
@@ -219,7 +225,7 @@ const eventMan = {
         }])
       }
       else {
-        typeWritter('not enough energy to charge shield')
+        typist('not enough energy to charge shield')
       }
     })
 
@@ -461,24 +467,28 @@ const eventMan = {
     Object.entries(eventMan.enemy.loot).forEach(([key, val]) => {
       const btn = document.createElement('div')
       btn.setAttribute('class', 'btn active')
-      btn.textContent = key
+      btn.textContent = `${key} (${eventMan.enemy.loot[key]})`
       topPanel.appendChild(btn)
+
       btn.addEventListener('click', (event) => {
         const btn = event.target
+        console.log(btn.textContent, btn.textContent.split(' ')[0])
         if (btn.className === 'btn active') {
-          if (btn.textContent === 'energy' && explorer.energy < explorer.energyMax
+          if (btn.textContent.split(' ')[0] === 'energy' && explorer.energy < explorer.energyMax
               && eventMan.enemy.loot.energy > 0) {
             explorer.energy += 1
             eventMan.enemy.loot.energy -= 1
+            btn.textContent = `${btn.textContent.split(' ')[0]} (${eventMan.enemy.loot.energy})`
             updateAllPanels()
             if (eventMan.enemy.loot.energy === 0) {
               btn.classList.remove('active')
             }
-          } else {
-            explorer[btn.textContent] += 1
+          } else if (btn.textContent.split(' ')[0] !== 'energy') {
+            explorer[btn.textContent.split(' ')[0]] += 1
             eventMan.enemy.loot[key] -= 1
+            btn.textContent = `${btn.textContent.split(' ')[0]} (${eventMan.enemy.loot[key]})`
             updateAllPanels()
-            if (eventMan.enemy.loot[btn.textContent] === 0) {
+            if (eventMan.enemy.loot[btn.textContent.split(' ')[0]] === 0) {
               btn.classList.remove('active')
             }
           }

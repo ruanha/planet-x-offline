@@ -5,58 +5,60 @@
 	<title>planet-x:offline</title>
 	<link rel="stylesheet" href="main.css">
 </head>
-<body>
+<body class="noselect">
 <div id='container'>
 	<div id='main-panel'>
 		<div id='messages'></div>
-		<div id='actions' class="hideit">
+		<div id='actions' class="hideit hidden">
 			<h1>Control Room</h1>
-			<div id='control'>
-				<div class='headline'>Systems</div>
+			<div id='control' >
+				<div class='headline hidden'>Systems</div>
 				<div id='restart-reactor' class='btn active'>restart reactor</div>
-				<div id='restart-extractor' class='btn active'>restart extractor</div>
-				<div id='droid-factory' class='btn active'>droid factory</div>
+				<div id='restart-extractor' class='btn hidden'>restart extractor</div>
+				<div id='droid-factory' class='btn hidden'>droid factory</div>
 
 			</div>
 			<div id='work'>
-				<div class='headline'>Work</div>
-				<div id='work-reactor' class='btn active'>make enegy</div>
-				<div id='work-extractor' class='btn active'>extract metals</div>
-				<div id='work-droid' class='btn active'>build droid</div>			
+				<div class='headline hidden'>Work</div>
+				<div id='work-reactor' class='btn hidden'>make enegy</div>
+				<div id='work-extractor' class='btn hidden'>extract metals</div>
+				<div id='work-droid' class='btn hidden'>build droid</div>			
 			</div>
 			<div id='droids'>
-				<div class='headline'>Assign droids</div>
-				<div id='droid-reactor' class='btn active'>droid (reactor)</div>
-				<div id='droid-extractor' class='btn active'>droid (extractor)</div>	
+				<div class='headline hidden'>Assign droids</div>
+				<div id='droid-reactor' class='btn hidden'>droid (reactor)</div>
+				<div id='droid-extractor' class='btn hidden'>droid (extractor)</div>	
 			</div>		
 		</div>
-		<div id='explorer' class="hideit">
+		<div id='explorer' class="hideit hidden">
 			<h1>Explorer</h1>
 			<div id='upgrades'>
 				<div class='headline'>Upgrade</div>
-				<div id='upgrade-battery' class='btn active'>battery I</div>
-				<div id='upgrade-shield' class='btn active'>shield I</div>	
-				<div id='upgrade-weapon' class='btn active'>weapon</div>	
+				<div id='upgrade-battery' class='btn hidden'>battery I</div>
+				<div id='upgrade-shield' class='btn hidden'>shield I</div>	
+				<div id='upgrade-weapon' class='btn hidden'>weapon</div>	
 			</div>
 			<div id='build'>
 				<div class='headline'>Build</div>
-				<div id='build-explorer' class='btn active'>build</div>
-				<div id='deploy' class='btn active'>deploy</div>
-				<div id='build-torpedos' class='btn active'>torpedos</div>
+				<div id='build-explorer' class='btn hidden'>build</div>
+				<div id='deploy' class='btn hidden'>deploy</div>
+				<div id='build-torpedos' class='btn hidden'>torpedos</div>
 			</div>	
 			<div id='load'>
 				<div class='headline'>Load/Unload</div>
-				<div id='load-energy' class='btn active'>energy</div>
-				<div id='load-droids' class='btn active'>droids</div>
-				<div id='load-torpedos' class='btn active'>torpedos</div>
+				<div id='load-energy' class='btn hidden'>energy</div>
+				<div id='load-droids' class='btn hidden'>droids</div>
+				<div id='load-torpedos' class='btn hidden'>torpedos</div>
 			</div>	
 		</div>
-		<h1>Planet-X</h1>
-    <div id="beacon1" class="beacon">offline</div><div id="beacon2" class="beacon">offline</div><div id="beacon3" class="beacon">offline</div>
-		<div id='planet-x' class="fade">
-		</div>
+    <div class="hidden">
+  		<h1>Planet-X</h1>
+      <div id="beacon1" class="beacon">offline</div><div id="beacon2" class="beacon">offline</div><div id="beacon3" class="beacon">offline</div>
+  		<div id='planet-x' class="fade">  
+      </div>
+    </div>
 	</div>
-	<div id='side-panel' class="hideit">
+	<div id='side-panel' class="hideit hidden">
 		<div id='resources'>
 			<h1>resources</h1>
 			<div id='resource-energy'>energy:</div>
@@ -64,7 +66,7 @@
 			<div id='resource-rare'>rare metals:</div>
 			<div id='resource-droids'>available droids:</div>
 		</div>
-		<div id='explorer-resources'>
+		<div id='explorer-resources' class="hidden">
 			<h1>explorer onboard</h1>
 			<div id='explorer-energy'>energy: 0</div>
 			<div id='explorer-droids'>droids: 0</div>
