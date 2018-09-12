@@ -81,10 +81,10 @@ const markers = {
   B: [[7, 47], [33, 24], [38, 70]],
 }
 
-const messageStack = []
-const callbackStack = []
+let messageStack = []
+let callbackStack = []
 
-function typist(message, callback = null) {
+function typist(message, callback = () => {}) {
   if (!messageStack.includes(message)) {
     messageStack.unshift(message)
     callbackStack.unshift(callback)
@@ -100,12 +100,16 @@ function typist(message, callback = null) {
 
 function typeWritter(txt, callback = null, t = 0) {
   let tw = t
+  let messages = document.getElementById('message-container')
+  if (tw === 0) {
+    let p = document.createElement('p')
+    messages.appendChild(p)
+  }
   if (tw < txt.length) {
-    document.getElementById('messages').innerHTML += txt.charAt(tw)
+    messages.lastChild.textContent += txt.charAt(tw)
     tw += 1
     setTimeout(typeWritter, 50, txt, callback, tw)
   } else {
-    document.getElementById('messages').innerHTML += '<br>'
     typeWritter.inUse = false
     if (callback) {
       callback()
@@ -114,7 +118,9 @@ function typeWritter(txt, callback = null, t = 0) {
 }
 typeWritter.inUse = false
 
-typist(messages.intro)
+typist(messages.intro, () => {
+  getById('actions').classList.remove('hidden')
+})
 typist(messages.intro2)
 
 function getById(Element) {
@@ -122,9 +128,14 @@ function getById(Element) {
 }
 
 function showBtn(btnId) {
-  btnId.forEach((btn) => {
-    getById(btn).className = 'btn active'
-  })
+  if (typeof btnId === 'object') {
+    btnId.forEach((btn) => {
+      getById(btn).className = 'btn active'
+    })
+  } else {
+    getById(btnId).className = 'btn active'
+  }
+
   // document.getElementById(btnId).style.visibility = 'visible'
 }
 
@@ -308,6 +319,9 @@ function energyMineEstablished(tile) {
   display()
 }
 function energyMine(tile) {
+  if (getById('load-droids').className === 'btn hidden') {
+    getById('load-droids').className = 'btn active'
+  }
   if (!tile.connected) {
     eventMan.establishMine(tile, explorer, 'Energy', energyMineEstablished)
   }
@@ -319,6 +333,9 @@ function rareMineEstablished(tile) {
   display()
 }
 function rareMine(tile) {
+  if (getById('load-droids').className === 'btn hidden') {
+    getById('load-droids').className = 'btn active'
+  }
   if (!tile.connected) {
     eventMan.establishMine(tile, explorer, 'Rare', rareMineEstablished)
   }
@@ -375,15 +392,6 @@ function randomFightBig(tile) {
 }
 
 function outpost(tile) {
-  /*
-  const mess = document.createElement('div')
-  mess.setAttribute('id', 'event')
-  mess.setAttribute('data-legend', 'A hive ruin turned into an outpost')
-  mess.textContent = 'This hive ruin is now an outpost for you.'
-    + 'There are some resources available'
-
-  getById('container').appendChild(mess)*/
-  console.log('load outpostEvent')
   eventMan.loadEnemy(outpostEvent, tile)
   eventMan.displayLoot()
 }
@@ -397,10 +405,12 @@ function tileAction(tile) {
     switch (tile.symbol) {
       case 'S':
         explorer.active = false
+        getById('deploy').className = 'btn active'
         map[base.y][base.x].symbol = base.symbol
         map[explorer.y][explorer.x].exp = false
         explorer.health = explorer.healthMax
         explorer.shield = explorer.shieldMax
+        planet.classList.toggle('fade')
         break
       case 'H':
         hiveFight(tile)
@@ -424,10 +434,10 @@ function tileAction(tile) {
         outpost(tile)
         break
       default:
-        if (Math.random() > 1 && explorer.distanceFromBase > 2) {
+        if (Math.random() > 0.9 && explorer.distanceFromBase > 2) {
           if (explorer.distanceFromBase < 10) {
             randomFightSmall(tile)
-          } else {
+          } else if (getById('upgrade-battery').className !== 'btn hidden') {
             randomFightBig(tile)
           }
         }
@@ -484,7 +494,7 @@ function updateAllPanels() {
   getById('resource-droids').innerHTML = `avaiable droids: ${base.droids.idle}`
   getById('resource-metals').innerHTML = `metals: ${base.metals}`
   getById('resource-energy').innerHTML = `energy: ${base.energy}`
-  getById('resource-rare').innerHTML = `rare: ${base.rare}`
+  getById('resource-rare').innerHTML = `rare metals: ${base.rare}`
   getById('explorer-droids').innerHTML = `droids: ${explorer.droids}/${explorer.droidsMax}`
   getById('explorer-energy').innerHTML = `energy: ${explorer.energy}/${explorer.energyMax}`
   getById('explorer-cargo').innerHTML = `cargo: ${explorer.metals
@@ -537,55 +547,76 @@ function cooldown(time, button, btnText, callback) {
 function restartReactor() {
   if (rrBtn.className === 'btn active') {
     rrBtn.classList.remove('active')
-    cooldown(5000, rrBtn, 'reactor online', [showBtn, ['work-reactor', 'restart-extractor']])
+    cooldown(5, rrBtn, 'reactor (online)', [showBtn, ['work-reactor', 'restart-extractor']])
+    setTimeout(() => {
+      clearInterval(offlineInterval)
+      messageStack = []
+      callbackStack = []
+      typist('reactor is online')
+    }, 5)
   }
 }
 function restartExtractor() {
   if (reBtn.className === 'btn active') {
     reBtn.classList.remove('active')
-    cooldown(10000, reBtn, 'extractor online', [showBtn, 'work-extractor'])
+    typist('extractor is online')
+    cooldown(10, reBtn, 'extractor (online)', [showBtn, ['work-extractor', 'droid-factory']])
   }
 }
 function restartFactory() {
   if (dfBtn.className === 'btn active') {
     dfBtn.classList.remove('active')
-    cooldown(20000, dfBtn, 'factory online', [showBtn, 'work-droid'])
+    typist('droid factory is online')
+    cooldown(20, dfBtn, 'factory (online)', [showBtn, 'work-droid'])
   }
 }
 function reactivate(btn) {
   btn.classList.add('active')
 }
 function workReactor() {
+  if (getById('resources').className === "hideit hidden") {
+    getById('resources').className = "hideit"
+  }
   if (wrBtn.className === 'btn active') {
     wrBtn.classList.remove('active')
-    cooldown(100, wrBtn, 'extract energy', [reactivate, wrBtn])
+    cooldown(10, wrBtn, 'work reactor', [reactivate, wrBtn])
     setTimeout(() => {
       base.energy += 1
       updateAllPanels()
-    }, 100)
+    }, 10)
   }
 }
 function workExtractor() {
+  if (getById('resources').className === "hideit hidden") {
+    getById('resources').className = "hideit"
+  }
   if (weBtn.className === 'btn active') {
     weBtn.className = 'btn'
-    cooldown(10000, weBtn, 'extract metals', [reactivate, weBtn])
+    cooldown(10, weBtn, 'extract metals', [reactivate, weBtn])
     setTimeout(() => {
       base.metals += 1
       updateAllPanels()
-    }, 10000)
+    }, 10)
   }
 }
 function buildDroid() {
+  if (getById('droid-reactor').className === 'btn hidden') {
+    getById('droid-reactor').className = 'btn active'
+    getById('droid-extractor').className = 'btn active'
+  }
   if (bdBtn.className === 'btn active') {
     bdBtn.className = 'btn'
-    cooldown(200, bdBtn, 'build droid', [reactivate, bdBtn])
+    cooldown(20, bdBtn, 'build droid', [reactivate, bdBtn])
     setTimeout(() => {
       base.droids.idle += 1
       updateAllPanels()
-    }, 200)
+    }, 20)
   }
 }
 function droidReactor() {
+  if (deBtn.className === 'btn') {
+    getById('explorer').classList.remove('hidden')
+  }
   if (drBtn.className === 'btn active') {
     if (base.droids.idle) {
       drBtn.className = 'btn'
@@ -598,6 +629,9 @@ function droidReactor() {
   }
 }
 function droidExtractor() {
+  if (drBtn.className === 'btn') {
+    getById('explorer').classList.remove('hidden')
+  }
   if (deBtn.className === 'btn active') {
     if (base.droids.idle) {
       deBtn.className = 'btn'
@@ -611,14 +645,18 @@ function droidExtractor() {
 }
 function buildExplorer() {
   cooldown(30, beBtn, 'build', [() => {
-    deployBtn.style.visibility = 'visible'
     explorer.alive = true
-    planet.classList.toggle('fade')
+    cooldown(20, beBtn, 'build explorer', [showBtn, ['deploy', 'load-energy', 'explorer-resources']])
   }, beBtn])
 }
 function deploy() {
-  if (explorer.alive) {
+  if (getById('planet').className === 'planet hidden') {
+    getById('planet').classList.remove('hidden')
+  }
+  if (getById('deploy').className === 'btn active') {
+    planet.classList.toggle('fade')
     explorer.active = true
+    getById('deploy').classList.remove('active')
   }
 }
 function upgBattery() {
@@ -630,9 +668,7 @@ function upgBattery() {
       explorer.energyMax = value[upgBattery.level]
       upgBattery.level += 1
       updateAllPanels()
-      if (upgBattery.level === 3) {
-        ubBtn.classList.remove('active')
-      }
+      ubBtn.classList.remove('active')
     }, ubBtn])
   }
 }
@@ -648,9 +684,7 @@ function upgShield() {
       explorer.shield = explorer.shieldMax
       upgShield.level += 1
       updateAllPanels()
-      if (upgShield.level === 3) {
-        usBtn.classList.remove('active')
-      }
+      usBtn.classList.remove('active')
     }, usBtn])
   }
 }
@@ -666,10 +700,12 @@ function upgWeapon() {
         explorer.slowdown = 'slow'
         explorer.slowdownSpeed = 1000
         explorer.slowdownIcon = '¤'
+        uwBtn.classList.remove('active')
       } else if (upgWeapon.level === 2) {
         explorer.plasma = 10
         explorer.plasmaSpeed = 400
         explorer.plasmaIcon = 'o'
+        uwBtn.classList.remove('active')
       } else if (upgWeapon.level === 3) {
         explorer.blocker = 'block'
         explorer.blockerSpeed = 2000

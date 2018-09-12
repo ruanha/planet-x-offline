@@ -7,11 +7,19 @@
             user-select: none; /* Non-prefixed version, currently
                                   supported by Chrome and Opera */
 }
+p{margin:0;}
 h1{font-size:14px; margin:0; margin-bottom:5px; padding:0px; text-align: center; text-decoration: underline;}
+body{background: white; z-index:2;}
 #container{width:800px; height:auto; margin:0 auto;}
 #main-panel{width:500px; height:auto; margin:0 auto; float:left;}
 #side-panel{width:175px; height:100px;float:left;margin-top:100px;}
-#messages{width:500px; height:100px; overflow:hidden; text-align: center;margin:0 auto;}
+#messages{width:500px; height:100px; text-align: center;margin:0 auto; margin-top: 10px; position: relative; overflow:hidden;}
+#message-container{
+  width:500px;
+  position: absolute;
+  bottom:20px;
+  text-align: center;
+}
 #actions{width:500px; height:150px;}
 #explorer{width:500px; height:150px;}
 

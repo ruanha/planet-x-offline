@@ -10,6 +10,13 @@ const enemySmall = {
   icon: '@enemy',
   loot: { rare: 1, metals: 1, energy: 5 },
   defeated() {
+    if (getById('upgrade-battery').className === 'btn hidden') {
+      typist('hostile aliens detected, upgrade explorer', () => {
+        getById('upgrade-battery').className = 'btn active'
+        getById('upgrade-shield').className = 'btn active'
+        getById('upgrade-weapon').className = 'btn active'
+      })
+    }
   },
 }
 
@@ -23,6 +30,13 @@ const enemyBig = {
   icon: '@enemy',
   loot: { rare: 2, metals: 2, energy: 10 },
   defeated() {
+    if (getById('upgrade-battery').textContent === 'battery II') {
+      typist('strong hostile aliens detected, upgrade explorer', () => {
+        getById('upgrade-battery').className = 'btn active'
+        getById('upgrade-shield').className = 'btn active'
+        getById('upgrade-weapon').className = 'btn active'
+      })
+    }
   },
 }
 
@@ -42,6 +56,14 @@ const enemyHive = {
     connectToBase(this.tile, hub)
     addToNetwork(this.tile)
     display()
+
+    if (getById('upgrade-battery').textContent === 'battery III') {
+      typist('powerful hostile aliens detected, upgrade explorer', () => {
+        getById('upgrade-battery').className = 'btn active'
+        getById('upgrade-shield').className = 'btn active'
+        getById('upgrade-weapon').className = 'btn active'
+      })
+    }
   },
 }
 
@@ -418,8 +440,8 @@ const eventMan = {
       if (explorer.health <= 0) {
         console.log("you dead", explorer.health)
         clearInterval(eventMan.enemy.interval)
-        // eventMan.closeBtn.className = 'btn active'
-        eventMan.closePanel()
+        eventMan.activePanel.parentNode.removeChild(eventMan.activePanel)
+        game.resume()
         playerDead()
       }
     }, 200 * 6)

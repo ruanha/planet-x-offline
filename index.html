@@ -8,19 +8,21 @@
 <body class="noselect">
 <div id='container'>
 	<div id='main-panel'>
-		<div id='messages'></div>
+		<div id='messages'>
+      <div id="message-container"></div>
+    </div>
 		<div id='actions' class="hideit hidden">
 			<h1>Control Room</h1>
 			<div id='control' >
 				<div class='headline hidden'>Systems</div>
-				<div id='restart-reactor' class='btn active'>restart reactor</div>
-				<div id='restart-extractor' class='btn hidden'>restart extractor</div>
-				<div id='droid-factory' class='btn hidden'>droid factory</div>
+				<div id='restart-reactor' class='btn active'>reactor (offline)</div>
+				<div id='restart-extractor' class='btn hidden'>extractor (offline)</div>
+				<div id='droid-factory' class='btn hidden'>factory (offline)</div>
 
 			</div>
 			<div id='work'>
 				<div class='headline hidden'>Work</div>
-				<div id='work-reactor' class='btn hidden'>make enegy</div>
+				<div id='work-reactor' class='btn hidden'>work reactor</div>
 				<div id='work-extractor' class='btn hidden'>extract metals</div>
 				<div id='work-droid' class='btn hidden'>build droid</div>			
 			</div>
@@ -28,38 +30,38 @@
 				<div class='headline hidden'>Assign droids</div>
 				<div id='droid-reactor' class='btn hidden'>droid (reactor)</div>
 				<div id='droid-extractor' class='btn hidden'>droid (extractor)</div>	
-			</div>		
+			</div>
 		</div>
 		<div id='explorer' class="hideit hidden">
 			<h1>Explorer</h1>
 			<div id='upgrades'>
-				<div class='headline'>Upgrade</div>
+				<div class='headline hidden'>Upgrade</div>
 				<div id='upgrade-battery' class='btn hidden'>battery I</div>
 				<div id='upgrade-shield' class='btn hidden'>shield I</div>	
 				<div id='upgrade-weapon' class='btn hidden'>weapon</div>	
 			</div>
 			<div id='build'>
-				<div class='headline'>Build</div>
-				<div id='build-explorer' class='btn hidden'>build</div>
+				<div class='headline hidden'>Build</div>
+				<div id='build-explorer' class='btn active'>build</div>
 				<div id='deploy' class='btn hidden'>deploy</div>
 				<div id='build-torpedos' class='btn hidden'>torpedos</div>
 			</div>	
 			<div id='load'>
-				<div class='headline'>Load/Unload</div>
+				<div class='headline hidden'>Load/Unload</div>
 				<div id='load-energy' class='btn hidden'>energy</div>
 				<div id='load-droids' class='btn hidden'>droids</div>
 				<div id='load-torpedos' class='btn hidden'>torpedos</div>
 			</div>	
 		</div>
-    <div class="hidden">
+    <div id="planet" class="planet hidden">
   		<h1>Planet-X</h1>
       <div id="beacon1" class="beacon">offline</div><div id="beacon2" class="beacon">offline</div><div id="beacon3" class="beacon">offline</div>
   		<div id='planet-x' class="fade">  
       </div>
     </div>
 	</div>
-	<div id='side-panel' class="hideit hidden">
-		<div id='resources'>
+	<div id='side-panel'>
+		<div id='resources' class="hideit hidden">
 			<h1>resources</h1>
 			<div id='resource-energy'>energy:</div>
 			<div id='resource-metals'>metals:</div>
