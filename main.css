@@ -1,4 +1,4 @@
-.noselect {
+/*.noselect {
   -webkit-touch-callout: none; /* iOS Safari */
     -webkit-user-select: none; /* Safari */
      -khtml-user-select: none; /* Konqueror HTML */
@@ -7,6 +7,17 @@
             user-select: none; /* Non-prefixed version, currently
                                   supported by Chrome and Opera */
 }
+*/
+
+/* PREVENT USER MARKING TEXT -looks ugly*/
+::selection {
+  background-color: transparent;
+}
+
+::-moz-selection {
+  background-color: transparent;
+}
+
 p{margin:0;}
 h1{font-size:14px; margin:0; margin-bottom:5px; padding:0px; text-align: center; text-decoration: underline;}
 body{background: white; z-index:2;}
@@ -32,11 +43,25 @@ border-width: 0px;padding: 0px;line-height: 7px;
 position: relative;top: 5%;}
 
 .btn{width:150px; height:20px; border:1px solid black; cursor:pointer; 
-	text-align: center;padding: 3px; margin:2px;color:grey;}
+	text-align: center;padding: 3px; margin:2px;color:grey; position: relative}
 .beacon{width:150px; height:20px; border:1px solid black; 
 	text-align: center;padding: 3px; margin:2px;color:grey; float:left;}
 .active{color:black;}
 .hidden{visibility:hidden;}
+.tooltip{
+  width: 100px;
+  top: 100%;
+  left: 50%;
+  margin-left: -56px; /* Use half of the width of button, to center the tooltip */
+  background-color: white;
+  border:1px solid black;
+  color: black;
+  text-align: center;
+  padding: 5px;
+  /* Position the tooltip */
+  position: absolute;
+  z-index: 1;
+}
 #control{float:left;}
 #work{float:left;}
 #droids{float:left;}

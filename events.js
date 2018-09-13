@@ -3,7 +3,7 @@ const NUMBER_OF_CELLS = 6
 const enemySmall = {
   title: 'An Unknown Alien',
   text: 'An unknown alien attacks!',
-  health: 1,
+  health: 5,
   damage: 1,
   delay: 1500,
   weaponIcon: '-',
@@ -23,8 +23,8 @@ const enemySmall = {
 const enemyBig = {
   title: 'A Large Alien',
   text: 'A large unknown alien attacks!',
-  health: 2,
-  damage: 1,
+  health: 20,
+  damage: 2,
   delay: 1500,
   weaponIcon: '*',
   icon: '@enemy',
@@ -43,8 +43,8 @@ const enemyBig = {
 const enemyHive = {
   title: 'A hive full of hideous aliens',
   text: 'You enter a hive. Millions of alien creatures reside here. Get ready to fight',
-  health: 5,
-  damage: 1,
+  health: 75,
+  damage: 10,
   delay: 1500,
   weaponIcon: '*',
   icon: '@enemy',
@@ -81,7 +81,7 @@ function EnemyFactory(enemy) {
   this.delay = enemy.delay || 1000
   this.weaponIcon = enemy.weaponIcon || '·'
   this.icon = enemy.icon || '@enemy'
-  this.loot = {} || {energy:10}
+  this.loot = {} || { energy:10 }
   this.defeated = enemy.defeated || function(){}
   Object.assign(this.loot, enemy.loot)
 }

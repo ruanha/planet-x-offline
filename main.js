@@ -156,6 +156,41 @@ const deployBtn = getById('deploy')
 const eexBtn = getById('load-energy')
 const dexBtn = getById('load-droids')
 
+reBtn.costs = { energy:1 }
+dfBtn.costs = { energy:1, metals:1 }
+bdBtn.costs = { energy:1, metals:1 }
+beBtn.costs = { energy: 1, metals: 1 }
+ubBtn.costs = { energy: 5, metals: 15, rare: 5 }
+usBtn.costs = { energy: 5, metals: 15, rare: 5 }
+uwBtn.costs = { energy: 5, metals: 15, rare: 5 }
+
+function addTooltip(btn) {
+  btn.addEventListener('mouseenter', (e) => {
+    if (btn.className === 'btn active') {
+      let tooltip = document.createElement('div')
+      tooltip.setAttribute('class', 'tooltip')
+      tooltip.setAttribute('id', 'tooltip')
+      Object.entries(btn.costs).forEach(([key, entry]) => {
+        const p = document.createElement('p')
+        p.textContent = `${key}: ${entry}`
+        tooltip.appendChild(p)
+      })
+      // tooltip.style.top = '200px'
+      btn.appendChild(tooltip)
+    }
+  })
+
+  btn.addEventListener('mouseleave', (e) => {
+    btn.removeChild(getById('tooltip'))
+  })
+}
+addTooltip(reBtn)
+addTooltip(dfBtn)
+addTooltip(bdBtn)
+addTooltip(ubBtn)
+addTooltip(usBtn)
+addTooltip(uwBtn)
+
 /* world map */
 const planet = getById('planet-x')
 const map = []
@@ -326,18 +361,18 @@ function energyMine(tile) {
     eventMan.establishMine(tile, explorer, 'Energy', energyMineEstablished)
   }
 }
-function rareMineEstablished(tile) {
+function metalsMineEstablished(tile) {
   const hub = network[getNearestHub(tile)]
   connectToBase(tile, hub)
   addToNetwork(tile)
   display()
 }
-function rareMine(tile) {
+function metalsMine(tile) {
   if (getById('load-droids').className === 'btn hidden') {
     getById('load-droids').className = 'btn active'
   }
   if (!tile.connected) {
-    eventMan.establishMine(tile, explorer, 'Rare', rareMineEstablished)
+    eventMan.establishMine(tile, explorer, 'Metals', metalsMineEstablished)
   }
 }
 function youWin() {
@@ -396,6 +431,11 @@ function outpost(tile) {
   eventMan.displayLoot()
 }
 
+function unloadCargo() {
+  base.rare = (explorer.rare) ? base.rare + explorer.rare : base.rare
+  base.metals = (explorer.metals) ? base.metals + explorer.metals : base.metals
+}
+
 function tileAction(tile) {
   if (canMove()) {
     explorer.setDistance()
@@ -411,6 +451,7 @@ function tileAction(tile) {
         explorer.health = explorer.healthMax
         explorer.shield = explorer.shieldMax
         planet.classList.toggle('fade')
+        unloadCargo()
         break
       case 'H':
         hiveFight(tile)
@@ -418,8 +459,8 @@ function tileAction(tile) {
       case 'E':
         energyMine(tile)
         break
-      case 'R':
-        rareMine(tile)
+      case 'M':
+        metalsMine(tile)
         break
       case '-':
         explorer.energy += 1
@@ -544,12 +585,34 @@ function cooldown(time, button, btnText, callback) {
     setTimeout(() => recursive(time - 10, fullTime, button, btnText, callback), 10)
   }(time, fullTime, button, btnText, callback))
 }
+
+function buy(costs) {
+  Object.keys(costs).forEach((key) => {
+    base[key] -= costs[key]
+    updateAllPanels()
+  })
+}
+
+function canBuy(costs) {
+  let returnVal = true
+  Object.keys(costs).forEach((key) => {
+    if (costs[key] > base[key]) {
+      returnVal = false
+    }
+  })
+  if (returnVal) {
+    buy(costs)
+    return returnVal
+  }
+  typist('not enough resources')
+  return returnVal
+}
+
 function restartReactor() {
   if (rrBtn.className === 'btn active') {
     rrBtn.classList.remove('active')
     cooldown(5, rrBtn, 'reactor (online)', [showBtn, ['work-reactor', 'restart-extractor']])
     setTimeout(() => {
-      clearInterval(offlineInterval)
       messageStack = []
       callbackStack = []
       typist('reactor is online')
@@ -557,14 +620,14 @@ function restartReactor() {
   }
 }
 function restartExtractor() {
-  if (reBtn.className === 'btn active') {
+  if (reBtn.className === 'btn active' && canBuy(reBtn.costs)) {
     reBtn.classList.remove('active')
     typist('extractor is online')
     cooldown(10, reBtn, 'extractor (online)', [showBtn, ['work-extractor', 'droid-factory']])
   }
 }
 function restartFactory() {
-  if (dfBtn.className === 'btn active') {
+  if (dfBtn.className === 'btn active' && canBuy(dfBtn.costs)) {
     dfBtn.classList.remove('active')
     typist('droid factory is online')
     cooldown(20, dfBtn, 'factory (online)', [showBtn, 'work-droid'])
@@ -604,7 +667,7 @@ function buildDroid() {
     getById('droid-reactor').className = 'btn active'
     getById('droid-extractor').className = 'btn active'
   }
-  if (bdBtn.className === 'btn active') {
+  if (bdBtn.className === 'btn active' && canBuy(bdBtn.costs)) {
     bdBtn.className = 'btn'
     cooldown(20, bdBtn, 'build droid', [reactivate, bdBtn])
     setTimeout(() => {
@@ -646,8 +709,9 @@ function droidExtractor() {
 function buildExplorer() {
   cooldown(30, beBtn, 'build', [() => {
     explorer.alive = true
-    cooldown(20, beBtn, 'build explorer', [showBtn, ['deploy', 'load-energy', 'explorer-resources']])
+    cooldown(20, beBtn, 'build explorer', [showBtn, ['deploy', 'load-energy']])
   }, beBtn])
+  getById('explorer-resources').classList.remove('hidden')
 }
 function deploy() {
   if (getById('planet').className === 'planet hidden') {
@@ -660,7 +724,10 @@ function deploy() {
   }
 }
 function upgBattery() {
-  if (ubBtn.className === 'btn active') {
+  if (ubBtn.className === 'btn active' && canBuy(ubBtn.costs)) {
+    Object.keys(ubBtn.costs).forEach((key) => {
+      ubBtn.costs[key] = Math.round((ubBtn.costs[key] ** 1.5) / 10) * 10
+    })
     const value = [20, 50, 100]
     const cooldowns = [100, 250, 600]
     const lvlRoman = ['II', 'III', '(max)']
@@ -675,7 +742,10 @@ function upgBattery() {
 upgBattery.level = 0
 
 function upgShield() {
-  if (usBtn.className === 'btn active') {
+  if (usBtn.className === 'btn active' && canBuy(usBtn.costs)) {
+    Object.keys(usBtn.costs).forEach((key) => {
+      usBtn.costs[key] = Math.round((usBtn.costs[key] ** 1.5) / 10) * 10
+    })
     const value = [5, 10, 15]
     const cooldowns = [100, 250, 600]
     const lvlRoman = ['II', 'III', '(max)']
@@ -691,7 +761,10 @@ function upgShield() {
 upgShield.level = 0
 
 function upgWeapon() {
-  if (uwBtn.className === 'btn active') {
+  if (uwBtn.className === 'btn active' && canBuy(uwBtn.costs)) {
+    Object.keys(uwBtn.costs).forEach((key) => {
+      uwBtn.costs[key] = Math.round((uwBtn.costs[key] ** 1.5) / 10) * 10
+    })
     const cooldowns = [100, 250, 600]
     const lvlRoman = ['II', 'III', '(max)']
     cooldown(cooldowns[upgWeapon.level], uwBtn, `weapon ${lvlRoman[upgWeapon.level]}`, [() => {
