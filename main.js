@@ -8,8 +8,8 @@ const messages = {
 }
 
 const base = {
-  y: 21, // 21
-  x: 46, // 46
+  y: 21,
+  x: 46,
   symbol: 'S',
   energy: 0,
   metals: 0,
@@ -74,17 +74,39 @@ const markers = {
     [18, 75], [42, 107], [55, 120], [53, 70], [51, 74], [44, 78], [39, 64],
     [36, 57], [32, 58], [31, 26], [35, 29], [39, 33], [39, 41], [54, 43], [30, 21],
     [27, 17], [47, 34], [56, 35], [58, 40]],
-  E: [[19, 51], [28, 24], [15, 61]],
-  // R: [[27, 47], [11, 44], [26, 21], [47, 37]],
+  E: [[19, 51], [28, 24], [15, 61], [21,43]],
   M: [[27, 47], [11, 44], [26, 21], [47, 37]],
-  // M: [[51, 37]],
   B: [[7, 47], [33, 24], [38, 70]],
+}
+
+const game = {
+  on: true,
+  over: false,
+  pause() {
+    game.on = false
+    explorer.active = false
+  },
+
+  resume() {
+    game.on = true
+    explorer.active = true
+  },
+}
+
+function max4messages() {
+  const messagesInContainer = getById('message-container').childNodes
+  if (messagesInContainer.length === 4) {
+    getById('message-container').removeChild(messagesInContainer[0])
+  }
 }
 
 let messageStack = []
 let callbackStack = []
 
 function typist(message, callback = () => {}) {
+  if (!game.over) {
+    max4messages()
+  }
   if (!messageStack.includes(message)) {
     messageStack.unshift(message)
     callbackStack.unshift(callback)
@@ -100,7 +122,8 @@ function typist(message, callback = () => {}) {
 
 function typeWritter(txt, callback = null, t = 0) {
   let tw = t
-  let messages = document.getElementById('message-container')
+  let messages = (game.over) ? document.getElementById('messages')
+    : document.getElementById('message-container')
   if (tw === 0) {
     let p = document.createElement('p')
     messages.appendChild(p)
@@ -135,11 +158,8 @@ function showBtn(btnId) {
   } else {
     getById(btnId).className = 'btn active'
   }
-
-  // document.getElementById(btnId).style.visibility = 'visible'
 }
 
-/* ALL BUTTONS ARE DECLARED HERE */
 const rrBtn = getById('restart-reactor')
 const reBtn = getById('restart-extractor')
 const dfBtn = getById('droid-factory')
@@ -175,7 +195,6 @@ function addTooltip(btn) {
         p.textContent = `${key}: ${entry}`
         tooltip.appendChild(p)
       })
-      // tooltip.style.top = '200px'
       btn.appendChild(tooltip)
     }
   })
@@ -192,7 +211,6 @@ addTooltip(usBtn)
 addTooltip(uwBtn)
 addTooltip(beBtn)
 
-/* world map */
 const planet = getById('planet-x')
 const map = []
 
@@ -216,7 +234,6 @@ for (let i = 0; i < planetRLE.length; i += 1) {
   }
 }
 function insertMarkers() {
-  // loop throughmarkers object and input them in map[y][x]
   Object.entries(markers).forEach((entry) => {
     const key = entry[0]
     const coords = entry[1]
@@ -302,10 +319,9 @@ function reveal(long, lat, icon) {
   display()
 }
 
-
 function explorerUpdate() {
   getById('explorer-energy').innerHTML = `energy: ${explorer.energy}/${explorer.energyMax}`
-  getById('explorer-droids').innerHTML = `droids: ${explorer.droids}/${explorer.cargoMax}`
+  getById('explorer-droids').innerHTML = `droids: ${explorer.droids}/${explorer.droidsMax}`
 }
 function canMove() {
   if (explorer.energy > 0) {
@@ -320,6 +336,8 @@ function initExplorer() {
   explorer.energy = 0
   explorer.droids = 0
   explorer.torpedos = 0
+  explorer.rare = 0
+  explorer.metals = 0
   explorer.active = false
 }
 
@@ -389,6 +407,7 @@ function energyMine(tile) {
   if (getById('load-droids').className === 'btn hidden') {
     getById('load-droids').className = 'btn active'
   }
+  explorer.energy += 1
   if (!tile.connected) {
     eventMan.establishMine(tile, explorer, 'Energy', energyMineEstablished)
   }
@@ -400,6 +419,7 @@ function metalsMineEstablished(tile) {
   display()
 }
 function metalsMine(tile) {
+  explorer.energy += 1
   if (getById('load-droids').className === 'btn hidden') {
     getById('load-droids').className = 'btn active'
   }
@@ -407,9 +427,20 @@ function metalsMine(tile) {
     eventMan.establishMine(tile, explorer, 'Metals', metalsMineEstablished)
   }
 }
+function revealMap() {
+  for (let i = 0; i < map.length; i += 1) {
+    for (let j = 0; j < map[i].length; j += 1) {
+      map[i][j].visible = true
+    }
+  }
+  display()
+}
+
 function youWin() {
   // reveal map
   game.pause()
+  game.over = true
+  revealMap()
   setInterval(() => {
     explorer.x = validX(explorer.x - 1)
     for (let i = 0; i < map.length; i += 1) {
@@ -429,7 +460,13 @@ function youWin() {
 const beaconIndex = []
 function initBeacon(tile) {
   const beaconNumber = beaconIndex.length
+  if (beaconNumber === 1) {
+    typist('first beacon in place, two more to go')
+  } else if (beaconNumber === 2) {
+    typist('second beacon in place, this will soon be over')
+  }
   if (beaconNumber <= 2) {
+    typist('beacon in place, this will soon be over')
     const beacon = document.getElementById(`beacon${beaconNumber + 1}`)
     beacon.textContent = 'online'
     beacon.classList.add('active')
@@ -439,6 +476,8 @@ function initBeacon(tile) {
     display()
   }
   if (beaconNumber === 2) {
+    game.on = false
+    game.over = true
     youWin()
   }
 }
@@ -466,6 +505,7 @@ function outpost(tile) {
 function unloadCargo() {
   base.rare = (explorer.rare) ? base.rare + explorer.rare : base.rare
   base.metals = (explorer.metals) ? base.metals + explorer.metals : base.metals
+  explorer.cargo = 0
 }
 
 function tileAction(tile) {
@@ -522,7 +562,7 @@ function tileAction(tile) {
   }
 }
 
-document.onkeypress = (e) => {
+document.addEventListener('keydown', (e) => {
   if (explorer.active) {
     map[explorer.y][explorer.x].exp = false
     let dx = 0
@@ -548,31 +588,21 @@ document.onkeypress = (e) => {
     tileAction(map[explorer.y][explorer.x])
     display(dx)
   }
-}
-
-const game = {
-  on: true,
-  pause() {
-    game.on = false
-    explorer.active = false
-  },
-
-  resume() {
-    game.on = true
-    explorer.active = true
-  },
-}
+})
 
 function updateAllPanels() {
-  getById('resource-droids').innerHTML = `avaiable droids: ${base.droids.idle}`
-  getById('resource-metals').innerHTML = `metals: ${base.metals}`
-  getById('resource-energy').innerHTML = `energy: ${base.energy}`
-  getById('resource-rare').innerHTML = `rare metals: ${base.rare}`
-  getById('explorer-droids').innerHTML = `droids: ${explorer.droids}/${explorer.droidsMax}`
-  getById('explorer-energy').innerHTML = `energy: ${explorer.energy}/${explorer.energyMax}`
-  getById('explorer-cargo').innerHTML = `cargo: ${explorer.metals
-    + explorer.rare}/${explorer.cargoMax}`
+  if (!game.over) {
+    getById('resource-droids').innerHTML = `available droids: ${base.droids.idle}`
+    getById('resource-metals').innerHTML = `metals: ${base.metals}`
+    getById('resource-energy').innerHTML = `energy: ${base.energy}`
+    getById('resource-rare').innerHTML = `rare metals: ${base.rare}`
+    getById('explorer-droids').innerHTML = `droids: ${explorer.droids}/${explorer.droidsMax}`
+    getById('explorer-energy').innerHTML = `energy: ${explorer.energy}/${explorer.energyMax}`
+    getById('explorer-cargo').innerHTML = `cargo: ${explorer.metals
+      + explorer.rare}/${explorer.cargoMax}`
+  }
 }
+
 function offbase() {
   Object.keys(network).forEach((key) => {
     if (network[key].symbol === 'E') {
@@ -588,7 +618,7 @@ function offbase() {
 updateAllPanels()
 setInterval(() => {
   offbase()
-}, 10000)
+}, 5000)
 setInterval(() => {
   if (game.on) {
     if (base.droids.reactor) { wrBtn.click() }
@@ -625,7 +655,7 @@ function buy(costs) {
   })
 }
 
-function canBuy(costs) {
+function canBuy(costs, droid = false) {
   let returnVal = true
   Object.keys(costs).forEach((key) => {
     if (costs[key] > base[key]) {
@@ -719,7 +749,7 @@ function droidReactor() {
       base.droids.idle -= 1
       updateAllPanels()
     } else {
-      typist(messages.resources)
+      typist('need to build droids')
     }
   }
 }
@@ -734,7 +764,7 @@ function droidExtractor() {
       base.droids.idle -= 1
       updateAllPanels()
     } else {
-      typist(messages.resources)
+      typist('need to build droids')
     }
   }
 }
@@ -779,7 +809,7 @@ upgBattery.level = 0
 function upgShield() {
   if (usBtn.className === 'btn active' && canBuy(usBtn.costs)) {
     Object.keys(usBtn.costs).forEach((key) => {
-      usBtn.costs[key] = Math.round((usBtn.costs[key] ** 1.5) / 10) * 10
+      usBtn.costs[key] = Math.round((usBtn.costs[key] ** 1.2) / 10) * 10
     })
     const value = [5, 10, 15]
     const cooldowns = [10000, 25000, 60000]
@@ -828,8 +858,9 @@ upgWeapon.level = 0
 function energyExplorer() {
   if (base.energy && explorer.energy < explorer.energyMax
       && map[explorer.y][explorer.x].symbol === 'S') {
-    explorer.energy += 1
-    base.energy -= 1
+    const transferEnergy = Math.min((explorer.energyMax - explorer.energy), base.energy)
+    explorer.energy += transferEnergy
+    base.energy -= transferEnergy
   }
   updateAllPanels()
 }

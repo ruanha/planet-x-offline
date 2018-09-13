@@ -1,4 +1,4 @@
-/*.noselect {
+.noselect {
   -webkit-touch-callout: none; /* iOS Safari */
     -webkit-user-select: none; /* Safari */
      -khtml-user-select: none; /* Konqueror HTML */
@@ -6,16 +6,6 @@
         -ms-user-select: none; /* Internet Explorer/Edge */
             user-select: none; /* Non-prefixed version, currently
                                   supported by Chrome and Opera */
-}
-*/
-
-/* PREVENT USER MARKING TEXT -looks ugly*/
-::selection {
-  background-color: transparent;
-}
-
-::-moz-selection {
-  background-color: transparent;
 }
 
 p{margin:0;}
@@ -52,13 +42,12 @@ position: relative;top: 5%;}
   width: 100px;
   top: 100%;
   left: 50%;
-  margin-left: -56px; /* Use half of the width of button, to center the tooltip */
+  margin-left: -50px;
   background-color: white;
   border:1px solid black;
   color: black;
   text-align: center;
   padding: 5px;
-  /* Position the tooltip */
   position: absolute;
   z-index: 1;
 }
@@ -108,7 +97,6 @@ left:8px;top:-13px;}
   text-align: center;
   width:10%;
 }
-/* ROWS */
 
 .rowKey {
 	width:75px;

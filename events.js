@@ -8,7 +8,7 @@ const enemySmall = {
   delay: 1500,
   weaponIcon: '-',
   icon: '@enemy',
-  loot: { rare: 1, metals: 1, energy: 5 },
+  loot: { rare: 5, metals: 5, energy: 5 },
   defeated() {
     if (getById('upgrade-battery').className === 'btn hidden') {
       typist('hostile aliens detected, upgrade explorer', () => {
@@ -28,7 +28,7 @@ const enemyBig = {
   delay: 1500,
   weaponIcon: '*',
   icon: '@enemy',
-  loot: { rare: 2, metals: 2, energy: 10 },
+  loot: { rare: 15, metals: 15, energy: 10 },
   defeated() {
     if (getById('upgrade-battery').textContent === 'battery II') {
       typist('strong hostile aliens detected, upgrade explorer', () => {
@@ -48,9 +48,8 @@ const enemyHive = {
   delay: 1500,
   weaponIcon: '*',
   icon: '@enemy',
-  loot: { rare: 10, metals: 5, energy: 15 },
+  loot: { rare: 50, metals: 50, energy: 25 },
   defeated() {
-    // tile is a reference to the active map-tile at map[y][x]
     const hub = network[getNearestHub(this.tile)]
     this.tile.symbol = 'X'
     connectToBase(this.tile, hub)
@@ -98,8 +97,7 @@ const eventMan = {
 
   gameOver() {
     const panels = document.getElementsByClassName('hideit')
-    getById('messages').style.height = '500px'
-    // getById('messages').style.top = '100px'
+    getById('messages').style.top = '0px'
 
     while (panels.length > 0) {
       panels[0].parentNode.removeChild(panels[0])
@@ -109,7 +107,7 @@ const eventMan = {
     typist('All systems online!')
     typist('Another alien world conquered')
     typist('···················')
-    typist('END CREDITS')
+    typist('Thank you for playing')
     typist('Thank you to everyone at 13kGames for a fun competition')
   },
 
@@ -360,16 +358,8 @@ const eventMan = {
     midPanel.setAttribute('id', 'event-mid-panel')
     midPanel = eventMan.battleButtons(midPanel)
 
-    /* const bottomPanel = document.createElement('div')
-    bottomPanel.setAttribute('id', 'event-bottom-panel')
-    eventMan.closeButton()
-    eventMan.closeBtn.setAttribute('class', 'btn')
-
-    bottomPanel.appendChild(eventMan.closeBtn) */
-
     eventPanel.appendChild(topPanel)
     eventPanel.appendChild(midPanel)
-    // eventPanel.appendChild(bottomPanel)
 
     eventMan.activePanel = eventPanel
     document.getElementById('container').appendChild(eventPanel)
@@ -381,9 +371,7 @@ const eventMan = {
     function recursive(icon, shooter, cellIndex, speed) {
       /* eslint-disable no-else-return */
       if (shooter === explorer.symbol) {
-        // end recursive condition for @explorer
         if (cellIndex === NUMBER_OF_CELLS) {
-          // end animation, assert damage, dead?
           eventMan.clearCell(cellIndex - 1, icon)
           return true
         } else {
@@ -397,9 +385,7 @@ const eventMan = {
         }
       } else {
         cellIndex -= 1
-        // end recursive condition for @enemy
         if (cellIndex === 0) {
-          // end animation, assert damage, dead?
           eventMan.clearCell(cellIndex + 1, icon)
           return true
         } else if (document.getElementById(`cell-${cellIndex}`).textContent === explorer.blockerIcon
@@ -436,7 +422,6 @@ const eventMan = {
           ? 0 : explorer.health - eventMan.enemy.damage
       }
       document.getElementById('explorer-health-bar').textContent = `health ${explorer.health}/${explorer.healthMax}`
-      // Is dead?
       if (explorer.health <= 0) {
         eventMan.enemy.tile.exp = false
         display()
@@ -454,14 +439,14 @@ const eventMan = {
       clearInterval(enemy.interval)
       eventMan.enemy.interval = setInterval(eventMan.enemyAttack, eventMan.enemy.delay)
     } else if (damage === 'block') {
-
     } else {
       eventMan.enemy.health -= damage
       if (eventMan.enemy.health <= 0) {
         eventMan.enemy.health = 0
         eventMan.enemyDead()
       } else {
-        document.getElementById('enemy-health-bar').textContent = `health ${enemy.health}`
+        document.getElementById('enemy-health-bar').textContent
+          = `health ${eventMan.enemy.health}`
       }
     }
   },
@@ -536,6 +521,5 @@ const eventMan = {
     eventMan.enemy.defeated()
     eventMan.activePanel.parentNode.removeChild(eventMan.activePanel)
     eventMan.displayLoot()
-    // events.display( buttons.lootBtns(), false, false )
   },
 }
