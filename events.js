@@ -438,7 +438,8 @@ const eventMan = {
       document.getElementById('explorer-health-bar').textContent = `health ${explorer.health}/${explorer.healthMax}`
       // Is dead?
       if (explorer.health <= 0) {
-        console.log("you dead", explorer.health)
+        eventMan.enemy.tile.exp = false
+        display()
         clearInterval(eventMan.enemy.interval)
         eventMan.activePanel.parentNode.removeChild(eventMan.activePanel)
         game.resume()
@@ -494,7 +495,6 @@ const eventMan = {
 
       btn.addEventListener('click', (event) => {
         const btn = event.target
-        console.log(btn.textContent, btn.textContent.split(' ')[0])
         if (btn.className === 'btn active') {
           if (btn.textContent.split(' ')[0] === 'energy' && explorer.energy < explorer.energyMax
               && eventMan.enemy.loot.energy > 0) {

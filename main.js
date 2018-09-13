@@ -34,7 +34,7 @@ const explorer = {
   cargoMax: 20,
   health: 10,
   healthMax: 10,
-  weapon: 10,
+  weapon: 2,
   weaponSpeed: 200,
   weaponIcon: '·',
   distanceFromBase: 0,
@@ -156,9 +156,9 @@ const deployBtn = getById('deploy')
 const eexBtn = getById('load-energy')
 const dexBtn = getById('load-droids')
 
-reBtn.costs = { energy:1 }
-dfBtn.costs = { energy:1, metals:1 }
-bdBtn.costs = { energy:1, metals:1 }
+reBtn.costs = { energy: 1 }
+dfBtn.costs = { energy: 1, metals: 1 }
+bdBtn.costs = { energy: 1, metals: 1 }
 beBtn.costs = { energy: 1, metals: 1 }
 ubBtn.costs = { energy: 5, metals: 15, rare: 5 }
 usBtn.costs = { energy: 5, metals: 15, rare: 5 }
@@ -190,6 +190,7 @@ addTooltip(bdBtn)
 addTooltip(ubBtn)
 addTooltip(usBtn)
 addTooltip(uwBtn)
+addTooltip(beBtn)
 
 /* world map */
 const planet = getById('planet-x')
@@ -211,6 +212,7 @@ for (let i = 0; i < planetRLE.length; i += 1) {
     map[i][j].y = i
     map[i][j].x = j
     map[i][j].connected = false
+    map[i][j].visible = false
   }
 }
 function insertMarkers() {
@@ -261,8 +263,8 @@ function display(dx = 0) {
         let y = i
         x = validX(x)
         y = validY(y)
-        // let symbol = ( map[y][x].visible )?  map[y][x].symbol:String.fromCharCode(178);
-        let symbol = (true) ? map[y][x].symbol : String.fromCharCode(178)
+        let symbol = (map[y][x].visible) ? map[y][x].symbol : String.fromCharCode(178)
+        // let symbol = (true) ? map[y][x].symbol : String.fromCharCode(178)
         symbol = (map[y][x].exp) ? explorer.symbol : symbol
         rowHTML += symbol
       } else {
@@ -272,6 +274,35 @@ function display(dx = 0) {
     lats[i].innerHTML = `${rowHTML}</span>`
   }
 }
+
+function reveal(long, lat, icon) {
+  map[lat][long].visible = true
+  for (let i = 0; i < 3; i += 1) {
+    if (lat + i + 1 < map.length - 1 && lat - i - 1 >= 0) {
+      map[lat + i + 1][long].visible = true
+      map[lat - i - 1][long].visible = true
+    }
+
+    for (let j = 0; j < 3; j += 1) {
+      let x = validX(long + j)
+      map[lat - i][x].visible = true
+      map[lat + i][x].visible = true
+
+      x = validX(long - j)
+      map[lat + i][x].visible = true
+      map[lat - i][x].visible = true
+
+      x = validX(long + j + 1)
+      map[lat][x].visible = true
+
+      x = validX(long - j - 1)
+      map[lat][x].visible = true
+    }
+  }
+  display()
+}
+
+
 function explorerUpdate() {
   getById('explorer-energy').innerHTML = `energy: ${explorer.energy}/${explorer.energyMax}`
   getById('explorer-droids').innerHTML = `droids: ${explorer.droids}/${explorer.cargoMax}`
@@ -293,10 +324,12 @@ function initExplorer() {
 }
 
 function playerDead() {
+  getById('build-explorer').className = 'btn active'
   map[explorer.y][explorer.x].exp = false
   planet.classList.toggle('fade')
   typist(messages.dead)
   initExplorer()
+  updateAllPanels()
 }
 
 const network = { [`${base.y} ${base.x}`]: base }
@@ -322,7 +355,6 @@ function getNearestHub(tile) {
       }
     }
   })
-  // console.log(smallestDist, network[nearest])
   return nearest
 }
 function connectToBase(tile, hub) {
@@ -438,9 +470,9 @@ function unloadCargo() {
 
 function tileAction(tile) {
   if (canMove()) {
+    reveal(tile.x, tile.y, explorer.symbol)
     explorer.setDistance()
-    // console.log(tile.y, tile.x)
-    // explorer.energy -= 1
+    explorer.energy -= 1
     explorerUpdate()
     switch (tile.symbol) {
       case 'S':
@@ -485,6 +517,7 @@ function tileAction(tile) {
         break
     }
   } else {
+    typist('explorer ran out of energy')
     playerDead()
   }
 }
@@ -511,7 +544,6 @@ document.onkeypress = (e) => {
       default:
         break
     }
-    // console.log(explorer.y, explorer.x)
     map[explorer.y][explorer.x].exp = true
     tileAction(map[explorer.y][explorer.x])
     display(dx)
@@ -611,26 +643,26 @@ function canBuy(costs) {
 function restartReactor() {
   if (rrBtn.className === 'btn active') {
     rrBtn.classList.remove('active')
-    cooldown(5, rrBtn, 'reactor (online)', [showBtn, ['work-reactor', 'restart-extractor']])
+    cooldown(2000, rrBtn, 'reactor (online)', [showBtn, ['work-reactor', 'restart-extractor']])
     setTimeout(() => {
       messageStack = []
       callbackStack = []
       typist('reactor is online')
-    }, 5)
+    }, 2000)
   }
 }
 function restartExtractor() {
   if (reBtn.className === 'btn active' && canBuy(reBtn.costs)) {
     reBtn.classList.remove('active')
     typist('extractor is online')
-    cooldown(10, reBtn, 'extractor (online)', [showBtn, ['work-extractor', 'droid-factory']])
+    cooldown(2000, reBtn, 'extractor (online)', [showBtn, ['work-extractor', 'droid-factory']])
   }
 }
 function restartFactory() {
   if (dfBtn.className === 'btn active' && canBuy(dfBtn.costs)) {
     dfBtn.classList.remove('active')
     typist('droid factory is online')
-    cooldown(20, dfBtn, 'factory (online)', [showBtn, 'work-droid'])
+    cooldown(2000, dfBtn, 'factory (online)', [showBtn, 'work-droid'])
   }
 }
 function reactivate(btn) {
@@ -642,11 +674,11 @@ function workReactor() {
   }
   if (wrBtn.className === 'btn active') {
     wrBtn.classList.remove('active')
-    cooldown(10, wrBtn, 'work reactor', [reactivate, wrBtn])
+    cooldown(5000, wrBtn, 'work reactor', [reactivate, wrBtn])
     setTimeout(() => {
       base.energy += 1
       updateAllPanels()
-    }, 10)
+    }, 5000)
   }
 }
 function workExtractor() {
@@ -655,11 +687,11 @@ function workExtractor() {
   }
   if (weBtn.className === 'btn active') {
     weBtn.className = 'btn'
-    cooldown(10, weBtn, 'extract metals', [reactivate, weBtn])
+    cooldown(5000, weBtn, 'extract metals', [reactivate, weBtn])
     setTimeout(() => {
       base.metals += 1
       updateAllPanels()
-    }, 10)
+    }, 5000)
   }
 }
 function buildDroid() {
@@ -669,11 +701,11 @@ function buildDroid() {
   }
   if (bdBtn.className === 'btn active' && canBuy(bdBtn.costs)) {
     bdBtn.className = 'btn'
-    cooldown(20, bdBtn, 'build droid', [reactivate, bdBtn])
+    cooldown(10000, bdBtn, 'build droid', [reactivate, bdBtn])
     setTimeout(() => {
       base.droids.idle += 1
       updateAllPanels()
-    }, 20)
+    }, 10000)
   }
 }
 function droidReactor() {
@@ -707,15 +739,18 @@ function droidExtractor() {
   }
 }
 function buildExplorer() {
-  cooldown(30, beBtn, 'build', [() => {
+  if (getById('build-explorer').className === 'btn active') {
+    getById('build-explorer').className = 'btn'
+    cooldown(10000, beBtn, 'build explorer', [showBtn, ['deploy', 'load-energy']])
     explorer.alive = true
-    cooldown(20, beBtn, 'build explorer', [showBtn, ['deploy', 'load-energy']])
-  }, beBtn])
-  getById('explorer-resources').classList.remove('hidden')
+    getById('explorer-resources').classList.remove('hidden')
+  }
 }
+
 function deploy() {
   if (getById('planet').className === 'planet hidden') {
     getById('planet').classList.remove('hidden')
+    reveal(base.x, base.y, explorer.icon)
   }
   if (getById('deploy').className === 'btn active') {
     planet.classList.toggle('fade')
@@ -729,7 +764,7 @@ function upgBattery() {
       ubBtn.costs[key] = Math.round((ubBtn.costs[key] ** 1.5) / 10) * 10
     })
     const value = [20, 50, 100]
-    const cooldowns = [100, 250, 600]
+    const cooldowns = [10000, 25000, 60000]
     const lvlRoman = ['II', 'III', '(max)']
     cooldown(cooldowns[upgBattery.level], ubBtn, `battery ${lvlRoman[upgBattery.level]}`, [() => {
       explorer.energyMax = value[upgBattery.level]
@@ -747,7 +782,7 @@ function upgShield() {
       usBtn.costs[key] = Math.round((usBtn.costs[key] ** 1.5) / 10) * 10
     })
     const value = [5, 10, 15]
-    const cooldowns = [100, 250, 600]
+    const cooldowns = [10000, 25000, 60000]
     const lvlRoman = ['II', 'III', '(max)']
     cooldown(cooldowns[upgShield.level], usBtn, `shield ${lvlRoman[upgShield.level]}`, [() => {
       explorer.shieldMax = value[upgShield.level]
@@ -765,7 +800,7 @@ function upgWeapon() {
     Object.keys(uwBtn.costs).forEach((key) => {
       uwBtn.costs[key] = Math.round((uwBtn.costs[key] ** 1.5) / 10) * 10
     })
-    const cooldowns = [100, 250, 600]
+    const cooldowns = [10000, 25000, 60000]
     const lvlRoman = ['II', 'III', '(max)']
     cooldown(cooldowns[upgWeapon.level], uwBtn, `weapon ${lvlRoman[upgWeapon.level]}`, [() => {
       upgWeapon.level += 1
@@ -791,7 +826,8 @@ function upgWeapon() {
 upgWeapon.level = 0
 
 function energyExplorer() {
-  if (base.energy && explorer.energy < explorer.energyMax) {
+  if (base.energy && explorer.energy < explorer.energyMax
+      && map[explorer.y][explorer.x].symbol === 'S') {
     explorer.energy += 1
     base.energy -= 1
   }
